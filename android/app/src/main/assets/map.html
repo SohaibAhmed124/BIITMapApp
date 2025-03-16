@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Leaflet Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <style>
+    html,
+    body,
+    #map {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    // Initialize the map
+    const map = L.map('map').setView([33.6468, 73.0376], 13); // Default center and zoom level
+
+    // Add a tile layer (e.g., OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Variables to store map state
+    let drawnBoundary = [];
+    let markers = [];
+    let tempPolyline = null;
+    let existingGeofences = [];
+    let isEditMode = false;
+    let selectedGeofence = null;
+
+    // Function to send data back to React Native
+    function sendToReactNative(data) {
+      window.ReactNativeWebView.postMessage(JSON.stringify(data));
+    }
+
+    // Function to draw a polygon on the map
+    function drawPolygon(coordinates, color = 'blue') {
+      return L.polygon(coordinates, { color, stroke: false }).addTo(map);
+    }
+
+    // Function to reset the boundary
+    function resetBoundaryFromReactNative() {
+      drawnBoundary = [];
+      markers.forEach(marker => map.removeLayer(marker));
+      markers = [];
+
+      if (window.currentPolygon) {
+        map.removeLayer(window.currentPolygon);
+        window.currentPolygon = null;
+      }
+
+      if (tempPolyline) {
+        map.removeLayer(tempPolyline);
+        tempPolyline = null;
+      }
+
+      sendToReactNative({ type: 'boundary', coordinates: [] });
+    }
+
+    // Function to load existing geofences
+    function loadGeofencesFromReactNative(geofences) {
+      existingGeofences = geofences;
+      geofences.forEach(geofence => {
+        const polygon = drawPolygon(
+          geofence.boundary.map(point => [point.latitude, point.longitude]),
+          'green'
+        );
+        polygon.bindPopup(`<b>${geofence.name}</b>`);
+      });
+    }
+
+    // Function to enable edit mode for a geofence
+    function enableEditModeFromReactNative(geofence) {
+      isEditMode = true;
+      selectedGeofence = geofence;
+      drawnBoundary = geofence.boundary;
+
+      // Draw the selected geofence
+      if (window.currentPolygon) {
+        map.removeLayer(window.currentPolygon);
+      }
+      window.currentPolygon = drawPolygon(
+        drawnBoundary.map(point => [point.latitude, point.longitude]),
+        'red'
+      );
+
+      // Center the map on the selected geofence
+      map.fitBounds(window.currentPolygon.getBounds());
+    }
+
+    // Handle map click events to draw the boundary
+    map.on('click', (e) => {
+      if (!isEditMode) {
+        const { lat, lng } = e.latlng;
+        drawnBoundary.push({ latitude: lat, longitude: lng });
+
+        // Add a marker
+        const marker = L.marker([lat, lng]).addTo(map);
+        markers.push(marker);
+
+        // Update the polygon with the new boundary
+        if (window.currentPolygon) {
+          map.removeLayer(window.currentPolygon);
+        }
+        window.currentPolygon = drawPolygon(
+          drawnBoundary.map(point => [point.latitude, point.longitude])
+        );
+
+        // Draw temporary polyline for better visualization
+        if (tempPolyline) {
+          map.removeLayer(tempPolyline);
+        }
+        tempPolyline = L.polyline(
+          drawnBoundary.map(point => [point.latitude, point.longitude]),
+          { color: 'rgb(250, 117, 72)', dashArray: '7, 10', weight: 2 }
+        ).addTo(map);
+
+        // Send the updated boundary to React Native
+        sendToReactNative({ type: 'boundary', coordinates: drawnBoundary });
+      }
+    });
+
+    function displayGeofence(boundary) {
+  if (!map) return;
+
+  // Convert boundary from [{ latitude, longitude }] to [[lat, lng]]
+  const coordinates = boundary.map(coord => [coord.latitude, coord.longitude]);
+
+  // Remove existing geofence layer if it exists
+  if (map.geofenceLayer) {
+    map.removeLayer(map.geofenceLayer);
+  }
+
+  // Draw the new geofence polygon
+  map.geofenceLayer = L.polygon(coordinates, {
+    color: "green",
+    fillColor: "#42f548",
+    fillOpacity: 0.5
+  }).addTo(map);
+
+  // Adjust the map view to fit the new geofence
+  map.fitBounds(map.geofenceLayer.getBounds());
+}
+
+
+    // Expose functions to the window for React Native calls
+    window.resetBoundaryFromReactNative = resetBoundaryFromReactNative;
+    window.loadGeofencesFromReactNative = loadGeofencesFromReactNative;
+    window.enableEditModeFromReactNative = enableEditModeFromReactNative;
+    window.displayGeofence = displayGeofence;
+  </script>
+</body>
+
+</html>
