@@ -24,8 +24,11 @@ import GeofenceList from './screens/AdminSide/GeofenceModule/GeofenceList';
 import GeofenceDetail from './screens/AdminSide/GeofenceModule/GeofenceDetail';
 import AllGeofences from './screens/AdminSide/GeofenceModule/AllGeofence';
 
-import FindRouteScreen from './screens/routing';
+import FindRouteScreen from './screens/getRoute';
 import CreateRouteScreen from './screens/createRoute';
+
+import AddLocationScreen from './screens/MapAdminSide/AddLocation';
+import GetLocationScreen from './screens/MapAdminSide/getLocation';
 
 const Stack = createNativeStackNavigator();
 const EmployeeStack = createNativeStackNavigator();
@@ -96,6 +99,6 @@ export default function App() {
     // <NavigationContainer>
     //   <RootStack />
     // </NavigationContainer>
-    <FindRouteScreen/>
+    <GetLocationScreen/>
   );
 }

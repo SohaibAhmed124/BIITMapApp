@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://192.168.1.10:3000/api'; // Replace with actual backend URL
+const API_BASE_URL = 'http://192.168.1.11:3000/api'; // Replace with actual backend URL
 
 const AdminService = {
   // Create a new user
