@@ -1,7 +1,7 @@
 import React, { useState} from 'react';
 import { View, Text, TextInput, Image, StyleSheet, Pressable, Alert, TouchableOpacity} from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import AdminApiService from '../AdminApiService'; // Assuming your API functions are correctly implemented
+import AdminApiService from '../../Api/AdminApiService'; // Assuming your API functions are correctly implemented
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchImageLibrary } from 'react-native-image-picker';
 

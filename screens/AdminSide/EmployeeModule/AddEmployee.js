@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import AdminApiService from '../AdminApiService';
+import AdminApiService from '../../Api/AdminApiService';
 import { useNavigation } from '@react-navigation/native';
 
 

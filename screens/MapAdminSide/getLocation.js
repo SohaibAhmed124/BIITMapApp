@@ -50,9 +50,13 @@ const GetLocationScreen = () => {
         <head>
           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
           <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+          <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; }
+    </style>
         </head>
         <body>
-          <div id="map" style="width: 100%; height: 100vh;"></div>
+          <div id="map"></div>
           <script>
             var map = L.map('map').setView([33.6844, 73.0479], 12);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -75,13 +79,12 @@ const GetLocationScreen = () => {
 
   return (
     <View style={styles.container}>
-        <View style={styles.header}>
+      <View style={styles.header}>
         <Text style={styles.headerText}>Map Locations</Text>
-      
-        </View>
+      </View>
       <View style={styles.searchContainer}>
-        <TextInput 
-          style={styles.searchBar} 
+        <TextInput
+          style={styles.searchBar}
           placeholder="Search location..."
           value={searchQuery}
           onChangeText={handleSearch}
@@ -113,6 +116,7 @@ const GetLocationScreen = () => {
             setSelectedLocation(locationData);
             setModalVisible(true);
           }}
+          style={{ flex: 1 }}
         />
       )}
 
@@ -139,11 +143,11 @@ const GetLocationScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor:"rgb(199, 217, 228)" },
-  header: { backgroundColor:"rgb(71, 205, 238)", width:'auto', height:50, flexDirection:'row', borderRadius:20, marginBottom:10},
-  headerText: {fontSize: 20, fontWeight: 'bold', textAlign: 'center', padding: 10, color:"rgb(255,255,255)"},
-  searchContainer: { position: 'absolute', top: 95, left: 10, right: 10, zIndex: 10 },
-  searchBar: { backgroundColor: '#fff', padding: 10, borderRadius: 5, borderWidth: 1, borderColor: '#ccc', width:'65%'},
+  container: { flex: 1, backgroundColor: "rgb(199, 217, 228)", padding:10},
+  header: { backgroundColor: "rgb(73, 143, 235)", width: 'auto', height: 50, flexDirection: 'row', borderRadius: 20, marginBottom: 10 },
+  headerText: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', padding: 10, color: "rgb(255,255,255)" },
+  searchContainer: { position: 'absolute', top: 95, left: 60, right: 10, zIndex: 10 },
+  searchBar: { backgroundColor: '#fff', padding: 10, borderRadius: 5, borderWidth: 1, borderColor: '#ccc', width: '85%' },
   suggestionsList: { backgroundColor: '#fff', borderRadius: 5, maxHeight: 150, position: 'absolute', top: 45, left: 0, right: 0, zIndex: 10 },
   suggestionItem: { padding: 10, borderBottomWidth: 1, borderColor: '#ddd' },
   errorText: { color: 'red', textAlign: 'center', marginTop: 20 },

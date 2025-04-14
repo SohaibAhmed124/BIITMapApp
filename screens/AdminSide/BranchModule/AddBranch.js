@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, Alert, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import AdminService from '../AdminApiService';
+import AdminService from '../../Api/AdminApiService';
 
 const AddBranch = ({ navigation }) => {
   const [branch, setBranch] = useState({ name: '', address: '', phone: '' });

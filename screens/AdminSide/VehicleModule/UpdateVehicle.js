@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, ActivityIndicator, Image, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { launchImageLibrary } from 'react-native-image-picker';
-import AdminService from '../AdminApiService';
+import AdminService from '../../Api/AdminApiService';
 
 const UpdateVehicle = () => {
   const route = useRoute();

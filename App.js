@@ -24,17 +24,27 @@ import GeofenceList from './screens/AdminSide/GeofenceModule/GeofenceList';
 import GeofenceDetail from './screens/AdminSide/GeofenceModule/GeofenceDetail';
 import AllGeofences from './screens/AdminSide/GeofenceModule/AllGeofence';
 
-import FindRouteScreen from './screens/getRoute';
-import CreateRouteScreen from './screens/createRoute';
+import FindRouteScreen from './screens/MapAdminSide/getRoute';
+import GetRouteScreen from './screens/MapAdminSide/getRouteGH'
+import CreateRouteScreen from './screens/MapAdminSide/createRoute';
+import MapMatchingScreen from './screens/MapAdminSide/MapMatch';
 
 import AddLocationScreen from './screens/MapAdminSide/AddLocation';
 import GetLocationScreen from './screens/MapAdminSide/getLocation';
+
+import AssignGeofenceScreen from './screens/BranchManagerSide/AssignGeofence';
+import AssignedGeofenceListScreen from './screens/BranchManagerSide/AssignedGeofences';
+import AssignedGeofenceDetailsScreen from './screens/BranchManagerSide/AssignedGeofenceDetails';
+import AssignVehicleScreen from './screens/BranchManagerSide/AssignVehicle';
+import AssignedVehicleListScreen from './screens/BranchManagerSide/AssignedVehicles';
+import AssignedVehicleDetailsScreen from './screens/BranchManagerSide/AssignedVehicleDetails';
 
 const Stack = createNativeStackNavigator();
 const EmployeeStack = createNativeStackNavigator();
 const BranchStack = createNativeStackNavigator();
 const VehicleStack = createNativeStackNavigator();
 const GeofenceStack = createNativeStackNavigator();
+const ManagerStack = createNativeStackNavigator();
 
 const EmployeeNavigator = () => {
   return(
@@ -80,6 +90,17 @@ const GeofenceNavigator = () => {
   );
 }
 
+const ManagerNavigator = () => {
+  return(
+    <ManagerStack.Navigator initialRouteName='AssignedVehicles' screenOptions={{headerShown:false}}>
+      {/* <ManagerStack.Screen name="AssignedGeofenceDetails" component={AssignedGeofenceDetailsScreen} />
+      <ManagerStack.Screen name="GeofenceList" component={AssignedGeofenceListScreen}/> */}
+      <ManagerStack.Screen name="AssignedVehicles" component={AssignedVehicleListScreen}/>
+      <ManagerStack.Screen name="AssignedVehicleDetails" component={AssignedVehicleDetailsScreen}/>
+    </ManagerStack.Navigator>
+  );
+}
+
 
 function RootStack() {
   return (
@@ -96,9 +117,10 @@ function RootStack() {
 
 export default function App() {
   return (
-    // <NavigationContainer>
-    //   <RootStack />
-    // </NavigationContainer>
-    <GetLocationScreen/>
+    <NavigationContainer>
+      {/* <RootStack /> */}
+      <ManagerNavigator/>
+    </NavigationContainer>
+    // <AssignedVehicleListScreen/>
   );
 }

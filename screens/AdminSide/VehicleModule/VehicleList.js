@@ -10,7 +10,7 @@ import {
   StyleSheet
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import AdminService from '../AdminApiService';
+import AdminService from '../../Api/AdminApiService';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 const VehicleList = () => {

@@ -13,7 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
-import AdminService from '../AdminApiService';
+import AdminService from '../../Api/AdminApiService';
 
 const AddVehicle = () => {
   const navigation = useNavigation();

@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, Button, Alert, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/Ionicons';
-import GeofenceService from '../GeofenceApi';
+import GeofenceService from '../../Api/GeofenceApi';
 
 const CreateGeofenceScreen = ({ navigation }) => {
   const [name, setName] = useState('');

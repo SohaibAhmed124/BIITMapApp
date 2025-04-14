@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity, Image, FlatList } from "react-nativ
 import { Text } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useNavigation } from "@react-navigation/native";
-import DashboardCard from "./CustomComponents/DashboardCard";
+import DashboardCard from "../CustomComponents/DashboardCard";
 
 const AdminDashboard = () => {
   const navigation = useNavigation();

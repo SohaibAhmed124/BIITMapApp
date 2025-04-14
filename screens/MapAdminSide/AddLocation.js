@@ -14,31 +14,6 @@ const AddLocationScreen = ({ navigation }) => {
   const [isFormModalVisible, setFormModalVisible] = useState(false);
   const [marker, setMarker] = useState(null);
 
-  const mapHtml = `
-    <html>
-      <head>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-      </head>
-      <body>
-        <div id="map" style="width: 100%; height: 100vh;"></div>
-        <script>
-          var map = L.map('map').setView([33.6844, 73.0479], 13);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-          
-          var marker;
-          map.on('click', function(e) {
-            if (marker) {
-              marker.setLatLng(e.latlng);
-            } else {
-              marker = L.marker(e.latlng).addTo(map);
-            }
-            window.ReactNativeWebView.postMessage(JSON.stringify(e.latlng));
-          });
-        </script>
-      </body>
-    </html>
-  `;
 
   const pickImage = () => {
     launchImageLibrary({ mediaType: 'photo', quality: 1 }, (response) => {
@@ -95,7 +70,11 @@ const AddLocationScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <WebView source={{ html: mapHtml }} onMessage={handleMapPress} style={styles.map} />
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Add Locations</Text>
+      </View>
+
+      <WebView source={require('../../assets/addLocation.html')} onMessage={handleMapPress} style={styles.map} />
 
       {/* Confirmation Modal */}
       <Modal visible={isConfirmModalVisible} transparent animationType="slide">
@@ -136,7 +115,9 @@ const AddLocationScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: "rgb(199, 217, 228)", padding:10},
+  header: { backgroundColor: "rgb(73, 143, 235)", width: 'auto', height: 50, flexDirection: 'row', borderRadius: 20, marginBottom: 10 },
+  headerText: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', padding: 10, color: "rgb(255,255,255)" },
   map: { flex: 1 },
   modalBackground: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContainer: { width: 300, padding: 20, backgroundColor: 'white', borderRadius: 10, alignItems: 'center' },
