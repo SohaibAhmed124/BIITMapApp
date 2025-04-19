@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Employee Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        html,
+        body,
+        #map {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .blinking-marker {
+            background: red;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            box-shadow: 0 0 10px red;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.2;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script>
+        const map = L.map("map").setView([33.6844, 73.0479], 12); // default: Islamabad
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+        }).addTo(map);
+
+        let locationMarker = null;
+        let geofenceLayers = [];
+        let geof = {};
+        function updateMap(employeeLocation, geofences) {
+            // Clear old geofences
+            geofenceLayers.forEach(layer => map.removeLayer(layer));
+            geofenceLayers = [];
+
+            // Add new geofences
+            geofences.forEach((geo) => {
+                const boundary = geo.geofence_boundary.map(coord => [coord.latitude, coord.longitude]);
+                if (boundary.length > 1) {
+                    const polygon = L.polygon(boundary, {
+                        color: geo.is_violating ? "red" : "green",
+                        fillOpacity: 0.3,
+                    }).addTo(map);
+                    polygon.bindPopup(`${geo.geofence_name}`);
+                    geofenceLayers.push(polygon);
+                } else if (boundary.length === 1) {
+                    const circle = L.circle(boundary[0], {
+                        radius: 100,
+                        color: geo.is_violating ? "red" : "green",
+                        fillOpacity: 0.3,
+                    }).addTo(map);
+                    circle.bindPopup(`${geo.geofence_name}`);
+                    geofenceLayers.push(circle);
+                }
+            });
+
+            // Add location marker
+            if (employeeLocation) {
+                const { latitude, longitude, first_name, last_name } = employeeLocation;
+
+                if (locationMarker) {
+                    locationMarker.setLatLng([latitude, longitude]);
+                } else {
+                    const blinkingDiv = L.divIcon({ className: "blinking-marker" });
+                    locationMarker = L.marker([latitude, longitude], { icon: blinkingDiv }).addTo(map);
+                }
+
+                map.setView([latitude, longitude], 15);
+                locationMarker.bindPopup(`${first_name} ${last_name}`).openPopup();
+            } else {
+                if (locationMarker) {
+                    map.removeLayer(locationMarker);
+                    locationMarker = null;
+                }
+            }
+
+
+        }
+        polygon.on("click", () => {
+            const message = {
+                type: "geofence_click",
+                geofence: geof,
+            };
+            window.ReactNativeWebView.postMessage(JSON.stringify(message));
+        });
+        circle.on("click", () => {
+            const message = {
+                type: "geofence_click",
+                geofence: geof,
+            };
+            window.ReactNativeWebView.postMessage(JSON.stringify(message));
+        });
+    </script>
+
+</body>
+
+</html>

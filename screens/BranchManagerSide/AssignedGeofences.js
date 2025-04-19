@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  FlatList
 } from 'react-native';
-import { DataTable, Searchbar, Chip } from 'react-native-paper';
+import { Searchbar, Chip } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import api from '../Api/ManagerApi';
-import { format, parseISO, isBefore, isAfter, isWithinInterval } from 'date-fns';
+import { parseISO, isBefore, isAfter, isWithinInterval } from 'date-fns';
 
 const AssignedGeofenceListScreen = ({ navigation }) => {
   const [assignedGeofences, setAssignedGeofences] = useState([]);
@@ -24,13 +25,48 @@ const AssignedGeofenceListScreen = ({ navigation }) => {
   const fetchAssignedGeofences = async () => {
     try {
       setLoading(true);
-      const response = await api.getAssignedGeofences();
-      // Ensure we always have an array, even if response is undefined/null
-      const data = Array.isArray(response.geofences) ? response.geofences : [];
-      setAssignedGeofences(data);
-      setFilteredGeofences(data);
+      const employeesResponse = await api.getEmployeesByManager(1);
+      const employees = employeesResponse.employees || [];
+
+
+      // Step 1: Fetch geofences for all employees at once
+      const allGeofences = await api.getAssignedGeofences(); // assuming this returns all geofences for all employees
+      console.log(allGeofences.geofences)
+      // Step 2: Prepare a map of employees by employee_id for easy lookup
+      const employeeMap = employees.reduce((acc, employee) => {
+        acc[employee.employee_id] = {
+          name: `${employee.first_name} ${employee.last_name}`,
+          phone: employee.phone,
+          image: employee.image
+        };
+        return acc;
+      }, {});
+
+      // Step 3: Filter and merge geofence data with employee information
+      const combinedData = allGeofences.geofences
+        .filter(geofence => employeeMap[geofence.employee_id]) // Filter geofences that have a matching employee_id
+        .map(geofence => {
+          const employee = employeeMap[geofence.employee_id];
+
+          // Merge employee data with geofence data
+          return {
+            ...geofence,
+            employee_name: employee.name,
+            employee_phone: employee.phone,
+            employee_image: employee.image
+          };
+        });
+
+      console.log(combinedData);
+
+
+
+
+      setAssignedGeofences(combinedData);
+      setFilteredGeofences(combinedData);
     } catch (error) {
       console.error('Error fetching assigned geofences:', error);
+      Alert.alert('Error', 'Failed to load assigned geofences');
       setAssignedGeofences([]);
       setFilteredGeofences([]);
     } finally {
@@ -44,32 +80,28 @@ const AssignedGeofenceListScreen = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
-    // Ensure we're working with an array
-    const results = Array.isArray(assignedGeofences) ? [...assignedGeofences] : [];
+    const results = [...assignedGeofences];
     const now = new Date();
-    
+
     if (searchQuery) {
       const filtered = results.filter(item => {
-        // Add null checks for item properties
-        const employeeId = item?.employee_id?.toString() || '';
+        const employeeName = item?.employee_name?.toLowerCase() || '';
         const geofenceName = item?.geofence_name?.toLowerCase() || '';
         return (
-          employeeId.includes(searchQuery.toLowerCase()) ||
+          employeeName.includes(searchQuery.toLowerCase()) ||
           geofenceName.includes(searchQuery.toLowerCase())
         );
       });
       setFilteredGeofences(filtered);
       return;
     }
-    
+
     if (activeFilter !== 'all') {
       const filtered = results.filter(item => {
-        // Add null checks for date properties
         if (!item?.start_date || !item?.end_date) return false;
-        
         const startDate = parseISO(item.start_date);
         const endDate = parseISO(item.end_date);
-        
+
         if (activeFilter === 'active') {
           return isWithinInterval(now, { start: startDate, end: endDate }) && item.is_active;
         } else if (activeFilter === 'upcoming') {
@@ -82,11 +114,42 @@ const AssignedGeofenceListScreen = ({ navigation }) => {
       setFilteredGeofences(filtered);
       return;
     }
-    
+
     setFilteredGeofences(results);
   }, [searchQuery, activeFilter, assignedGeofences]);
 
-  // ... rest of the component remains the same ...
+  const renderGeofenceItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() =>
+        navigation.navigate('AssignedGeofenceDetails', {
+          geofence: item,
+          employee: {
+            name: item.employee_name,
+            phone: item.employee_phone,
+            image: item.employee_image
+          }
+        })
+      }
+    >
+      <View style={styles.cardRow}>
+        <Text style={styles.label}>Employee:</Text>
+        <Text style={styles.value}>{item.employee_name}</Text>
+      </View>
+      <View style={styles.cardRow}>
+        <Text style={styles.label}>Geofence:</Text>
+        <Text style={styles.value}>{item.geofence_name}</Text>
+      </View>
+      <View style={styles.cardRow}>
+        <Text style={styles.label}>Status:</Text>
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.start_date, item.end_date, item.is_active) }]}>
+          <Text style={styles.statusText}>
+            {getStatus(item.start_date, item.end_date, item.is_active).toUpperCase()}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   if (loading) {
     return (
@@ -99,7 +162,6 @@ const AssignedGeofenceListScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#fff" />
@@ -107,7 +169,6 @@ const AssignedGeofenceListScreen = ({ navigation }) => {
         <Text style={styles.headerText}>Assigned Geofences</Text>
       </View>
 
-      {/* Search and Filter */}
       <View style={styles.filterContainer}>
         <Searchbar
           placeholder="Search by employee or geofence"
@@ -115,9 +176,9 @@ const AssignedGeofenceListScreen = ({ navigation }) => {
           value={searchQuery}
           style={styles.searchBar}
         />
-        
-        <ScrollView 
-          horizontal 
+
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chipContainer}
         >
@@ -140,71 +201,35 @@ const AssignedGeofenceListScreen = ({ navigation }) => {
         </ScrollView>
       </View>
 
-      {/* Geofence List */}
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={fetchAssignedGeofences}
-          />
-        }
-      >
-        <DataTable>
-          <DataTable.Header>
-            <DataTable.Title>Employee</DataTable.Title>
-            <DataTable.Title>Geofence</DataTable.Title>
-            <DataTable.Title>Status</DataTable.Title>
-          </DataTable.Header>
-
-          {filteredGeofences.length > 0 ? (
-            filteredGeofences.map((item) => (
-              <DataTable.Row 
-                key={`${item.employee_id}-${item.geo_id}`}
-                onPress={() => navigation.navigate('AssignedGeofenceDetails', { geofence: item })}
-              >
-                <DataTable.Cell>{item.employee_id}</DataTable.Cell>
-                <DataTable.Cell>{item.geofence_name}</DataTable.Cell>
-                <DataTable.Cell>
-                  <View style={[
-                    styles.statusBadge,
-                    { 
-                      backgroundColor: getStatusColor(
-                        item.start_date, 
-                        item.end_date,
-                        item.is_active
-                      ) 
-                    }
-                  ]}>
-                    <Text style={styles.statusText}>
-                      {getStatus(
-                        item.start_date, 
-                        item.end_date,
-                        item.is_active
-                      ).toUpperCase()}
-                    </Text>
-                  </View>
-                </DataTable.Cell>
-              </DataTable.Row>
-            ))
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No assigned geofences found</Text>
-            </View>
-          )}
-        </DataTable>
-      </ScrollView>
+      {filteredGeofences.length > 0 ? (
+        <FlatList
+          data={filteredGeofences}
+          keyExtractor={(item, index) => `${item.employee_id}-${item.geo_id}-${index}`}
+          renderItem={renderGeofenceItem}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={fetchAssignedGeofences}
+            />
+          }
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No assigned geofences found</Text>
+        </View>
+      )}
     </View>
   );
 };
 
-// Helper functions outside component
+// Helper functions
 const getStatus = (startDate, endDate, isActive) => {
   if (!isActive) return 'inactive';
-  
   const now = new Date();
   const start = parseISO(startDate);
   const end = parseISO(endDate);
-  
+
   if (isBefore(now, start)) return 'upcoming';
   if (isAfter(now, end)) return 'expired';
   return 'active';
@@ -221,11 +246,9 @@ const getStatusColor = (startDate, endDate, isActive) => {
   return colors[status] || '#9E9E9E';
 };
 
+// Styles
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -252,6 +275,26 @@ const styles = StyleSheet.create({
   chip: {
     marginRight: 8,
     height: 32,
+  },
+  card: {
+    backgroundColor: 'white',
+    marginHorizontal: 12,
+    marginVertical: 6,
+    borderRadius: 10,
+    padding: 12,
+    elevation: 2,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  label: {
+    fontWeight: '600',
+    marginRight: 6,
+  },
+  value: {
+    flex: 1,
+    color: '#555',
   },
   loadingContainer: {
     flex: 1,

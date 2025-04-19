@@ -7,23 +7,23 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import RNPickerSelect from "react-native-picker-select";
 import DateTimePicker from "react-native-modal-datetime-picker";
+import { SelectList, MultipleSelectList } from "react-native-dropdown-select-list";
 import api from "../Api/ManagerApi";
-import GeofenceService from "../Api/GeofenceApi"; 
+import GeofenceService from "../Api/GeofenceApi";
 
-const AssignGeofenceScreen = ({ navigation, route }) => {
-  const managerId =  1; // Get managerId from navigation or use default
+const AssignGeofenceScreen = ({ navigation }) => {
+  const managerId = 1;
   const [employees, setEmployees] = useState([]);
   const [geofences, setGeofences] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedEmployees, setSelectedEmployees] = useState([]);
   const [selectedGeofence, setSelectedGeofence] = useState(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [type, setType] = useState("");
-  
+
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
@@ -37,9 +37,9 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
   const fetchEmployees = async () => {
     try {
       const response = await api.getEmployeesByManager(managerId);
-      setEmployees(response.employees.map(emp => ({ 
-        label: `${emp.first_name} ${emp.last_name}`|| `Employee ${emp.employee_id}`, 
-        value: emp.employee_id 
+      setEmployees(response.employees.map(emp => ({
+        key: emp.employee_id,
+        value: `${emp.first_name} ${emp.last_name}` || `Employee ${emp.employee_id}`,
       })));
     } catch (error) {
       console.error("Error fetching employees:", error);
@@ -50,9 +50,9 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
   const fetchGeofences = async () => {
     try {
       const response = await GeofenceService.getAllGeofences();
-      setGeofences(response.map(geo => ({ 
-        label: geo.name || `Geofence ${geo.geo_id}`, 
-        value: geo.geo_id
+      setGeofences(response.map(geo => ({
+        key: geo.geo_id,
+        value: geo.name || `Geofence ${geo.geo_id}`,
       })));
     } catch (error) {
       console.error("Error fetching geofences:", error);
@@ -60,17 +60,12 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
     }
   };
 
-  const formatDate = (date) => {
-    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
-  };
-
-  const formatTime = (time) => {
-    return time.toTimeString().split(' ')[0]; // HH:MM:SS format
-  };
+  const formatDate = (date) => date.toISOString().split('T')[0];
+  const formatTime = (time) => time.toTimeString().split(' ')[0];
 
   const handleAssignGeofence = async () => {
-    if (!selectedEmployee) {
-      Alert.alert("Error", "Please select an employee");
+    if (selectedEmployees.length === 0) {
+      Alert.alert("Error", "Please select at least one employee");
       return;
     }
     if (!selectedGeofence) {
@@ -89,13 +84,11 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
       Alert.alert("Error", "Please select geofence type");
       return;
     }
-
+    
+    console.log(selectedEmployees)
     try {
-      // Convert single employee ID to array to match API expectation
-      const employeeIds = [selectedEmployee];
-      
       await api.assignGeofenceToEmployees(
-        employeeIds, // Now passing an array
+        selectedEmployees,
         selectedGeofence,
         startDate,
         endDate,
@@ -103,15 +96,11 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         endTime,
         type
       );
-      
+
       Alert.alert("Success", "Geofence assigned successfully");
-      // navigation.goBack();
     } catch (error) {
       console.error("Error assigning geofence:", error);
-      let errorMessage = "Failed to assign geofence";
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
+      const errorMessage = error.response?.data?.message || "Failed to assign geofence";
       Alert.alert("Error", errorMessage);
     }
   };
@@ -120,32 +109,34 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.header}>Assign Geofence</Text>
 
-      {/* Employee Picker - Single select */}
-      <Text style={styles.label}>Select Employee</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setSelectedEmployee(value)}
-        items={employees}
-        placeholder={{ label: "Select an employee...", value: null }}
-        value={selectedEmployee}
-        style={pickerSelectStyles}
-        useNativeAndroidPickerStyle={false}
+      <Text style={styles.label}>Select Employees</Text>
+      <MultipleSelectList
+        setSelected={(val) => {
+          setSelectedEmployees(val)
+          console.log(selectedEmployees)
+        }}
+        data={employees}
+        save="key"
+        placeholder="Select employees"
+        boxStyles={styles.dropdown}
+        inputStyles={styles.inputText}
+        badgeStyles={styles.badge}
+        badgeTextStyles={styles.badgeText}
       />
 
-      {/* Geofence Picker */}
       <Text style={styles.label}>Select Geofence</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setSelectedGeofence(value)}
-        items={geofences}
-        placeholder={{ label: "Select a geofence...", value: null }}
-        value={selectedGeofence}
-        style={pickerSelectStyles}
-        useNativeAndroidPickerStyle={false}
+      <SelectList
+        setSelected={setSelectedGeofence}
+        data={geofences}
+        save="key"
+        placeholder="Select geofence"
+        boxStyles={styles.dropdown}
+        inputStyles={styles.inputText}
       />
 
-      {/* Start Date */}
       <Text style={styles.label}>Start Date</Text>
-      <TouchableOpacity 
-        onPress={() => setShowStartDatePicker(true)} 
+      <TouchableOpacity
+        onPress={() => setShowStartDatePicker(true)}
         style={styles.dateInput}
       >
         <Text>{startDate || "Select start date"}</Text>
@@ -160,10 +151,9 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         onCancel={() => setShowStartDatePicker(false)}
       />
 
-      {/* End Date */}
       <Text style={styles.label}>End Date</Text>
-      <TouchableOpacity 
-        onPress={() => setShowEndDatePicker(true)} 
+      <TouchableOpacity
+        onPress={() => setShowEndDatePicker(true)}
         style={styles.dateInput}
       >
         <Text>{endDate || "Select end date"}</Text>
@@ -178,10 +168,9 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         onCancel={() => setShowEndDatePicker(false)}
       />
 
-      {/* Start Time */}
       <Text style={styles.label}>Start Time</Text>
-      <TouchableOpacity 
-        onPress={() => setShowStartTimePicker(true)} 
+      <TouchableOpacity
+        onPress={() => setShowStartTimePicker(true)}
         style={styles.dateInput}
       >
         <Text>{startTime || "Select start time"}</Text>
@@ -196,10 +185,9 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         onCancel={() => setShowStartTimePicker(false)}
       />
 
-      {/* End Time */}
       <Text style={styles.label}>End Time</Text>
-      <TouchableOpacity 
-        onPress={() => setShowEndTimePicker(true)} 
+      <TouchableOpacity
+        onPress={() => setShowEndTimePicker(true)}
         style={styles.dateInput}
       >
         <Text>{endTime || "Select end time"}</Text>
@@ -214,25 +202,20 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         onCancel={() => setShowEndTimePicker(false)}
       />
 
-      {/* Geofence Type */}
       <Text style={styles.label}>Geofence Type</Text>
-      <RNPickerSelect
-        onValueChange={(value) => setType(value)}
-        items={[
-          { label: "Authorized (Must be inside)", value: "Authorized" },
-          { label: "Restricted (Must be outside)", value: "Restricted" },
+      <SelectList
+        setSelected={setType}
+        data={[
+          { key: "Authorized", value: "Authorized (Must be inside)" },
+          { key: "Restricted", value: "Restricted (Must be outside)" },
         ]}
-        placeholder={{ label: "Select type...", value: null }}
-        value={type}
-        style={pickerSelectStyles}
-        useNativeAndroidPickerStyle={false}
-        Icon={() => <View style={styles.dropdownIcon} />}
+        save="key"
+        placeholder="Select type"
+        boxStyles={styles.dropdown}
+        inputStyles={styles.inputText}
       />
 
-      <TouchableOpacity 
-        style={styles.submitButton} 
-        onPress={handleAssignGeofence}
-      >
+      <TouchableOpacity style={styles.submitButton} onPress={handleAssignGeofence}>
         <Text style={styles.submitButtonText}>Assign Geofence</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -243,76 +226,58 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
   },
   header: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    textAlign: 'center',
-    color: '#343a40',
+    textAlign: "center",
+    color: "#343a40",
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
-    color: '#495057',
+    color: "#495057",
+  },
+  dropdown: {
+    borderColor: "#ced4da",
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 12,
+    backgroundColor: "#fff",
+    marginBottom: 15,
+  },
+  inputText: {
+    color: "#495057",
+  },
+  badge: {
+    backgroundColor: "#007bff",
+  },
+  badgeText: {
+    color: "#fff",
   },
   dateInput: {
     borderWidth: 1,
-    borderColor: '#ced4da',
+    borderColor: "#ced4da",
     borderRadius: 4,
     padding: 12,
     marginBottom: 15,
-    backgroundColor: '#fff',
-  },
-  dropdownIcon: {
-    width: 0,
-    height: 0,
+    backgroundColor: "#fff",
   },
   submitButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: "#007bff",
     padding: 15,
     borderRadius: 4,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
   },
   submitButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
-  },
-});
-
-const pickerSelectStyles = StyleSheet.create({
-  inputIOS: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 4,
-    color: '#495057',
-    paddingRight: 30,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-  },
-  inputAndroid: {
-    fontSize: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 4,
-    color: '#495057',
-    paddingRight: 30,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-  },
-  placeholder: {
-    color: '#6c757d',
+    fontWeight: "600",
   },
 });
 
 export default AssignGeofenceScreen;
-

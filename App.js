@@ -38,6 +38,9 @@ import AssignedGeofenceDetailsScreen from './screens/BranchManagerSide/AssignedG
 import AssignVehicleScreen from './screens/BranchManagerSide/AssignVehicle';
 import AssignedVehicleListScreen from './screens/BranchManagerSide/AssignedVehicles';
 import AssignedVehicleDetailsScreen from './screens/BranchManagerSide/AssignedVehicleDetails';
+import TrackingScreen from './screens/BranchManagerSide/TrackingEmployee';
+
+import LeafletMap from './screens/MapAdminSide/CongestionSimulation';
 
 const Stack = createNativeStackNavigator();
 const EmployeeStack = createNativeStackNavigator();
@@ -117,10 +120,10 @@ function RootStack() {
 
 export default function App() {
   return (
-    <NavigationContainer>
-      {/* <RootStack /> */}
-      <ManagerNavigator/>
-    </NavigationContainer>
-    // <AssignedVehicleListScreen/>
+    // <NavigationContainer>
+    //   {/* <RootStack /> */}
+    //   <ManagerNavigator/>
+    // </NavigationContainer>
+    <TrackingScreen/>
   );
 }
