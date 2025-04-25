@@ -39,6 +39,8 @@ import AssignVehicleScreen from './screens/BranchManagerSide/AssignVehicle';
 import AssignedVehicleListScreen from './screens/BranchManagerSide/AssignedVehicles';
 import AssignedVehicleDetailsScreen from './screens/BranchManagerSide/AssignedVehicleDetails';
 import TrackingScreen from './screens/BranchManagerSide/TrackingEmployee';
+import ViolationsScreen from './screens/BranchManagerSide/ViewViolation';
+import ManagerDashboard from './screens/BranchManagerSide/ManagerDashboard';
 
 import LeafletMap from './screens/MapAdminSide/CongestionSimulation';
 
@@ -95,11 +97,16 @@ const GeofenceNavigator = () => {
 
 const ManagerNavigator = () => {
   return(
-    <ManagerStack.Navigator initialRouteName='AssignedVehicles' screenOptions={{headerShown:false}}>
-      {/* <ManagerStack.Screen name="AssignedGeofenceDetails" component={AssignedGeofenceDetailsScreen} />
-      <ManagerStack.Screen name="GeofenceList" component={AssignedGeofenceListScreen}/> */}
+    <ManagerStack.Navigator initialRouteName='ManagerDashboard' screenOptions={{headerShown:false}}>
+      <ManagerStack.Screen name="ManagerDashboard" component={ManagerDashboard} />
+      <ManagerStack.Screen name="AssignedGeofenceDetails" component={AssignedGeofenceDetailsScreen} />
+      <ManagerStack.Screen name="AssignedGeofences" component={AssignedGeofenceListScreen}/>
       <ManagerStack.Screen name="AssignedVehicles" component={AssignedVehicleListScreen}/>
       <ManagerStack.Screen name="AssignedVehicleDetails" component={AssignedVehicleDetailsScreen}/>
+      <ManagerStack.Screen name="AssignGeofence" component={AssignGeofenceScreen}/>
+      <ManagerStack.Screen name="AssignVehicle" component={AssignVehicleScreen}/>
+      <ManagerStack.Screen name="EmployeeTracking" component={TrackingScreen}/>
+      <ManagerStack.Screen name="ViewViolation" component={ViolationsScreen}/>
     </ManagerStack.Navigator>
   );
 }
@@ -110,6 +117,7 @@ function RootStack() {
     <Stack.Navigator initialRouteName='AdminView' screenOptions={{headerShown:false}}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="AdminView" component={AdminDashboard}/>
+      <Stack.Screen name="ManagerSide" component={ManagerNavigator}/>
       <Stack.Screen name="EmployeeModule" component={EmployeeNavigator} />
       <Stack.Screen name="BranchModule" component={BranchNavigator} />
       <Stack.Screen name="VehicleModule" component={VehicleNavigator} />
@@ -120,10 +128,10 @@ function RootStack() {
 
 export default function App() {
   return (
-    // <NavigationContainer>
-    //   {/* <RootStack /> */}
-    //   <ManagerNavigator/>
-    // </NavigationContainer>
-    <TrackingScreen/>
+    <NavigationContainer>
+      {/* <RootStack /> */}
+      <ManagerNavigator/>
+    </NavigationContainer>
+    // <ViolationsScreen/>
   );
 }

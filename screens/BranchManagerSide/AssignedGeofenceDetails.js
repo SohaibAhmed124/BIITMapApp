@@ -5,7 +5,7 @@ import { format, parseISO } from 'date-fns';
 import { WebView } from 'react-native-webview';
 
 const AssignedGeofenceDetailsScreen = ({ route }) => {
-  const { geofence } = route.params;
+  const { geofence, employee } = route.params;
 
   // Example geofence polygon coordinates (replace with actual from geofence)
   const coordinates = (geofence?.geofence_boundary).map(coords => [coords.latitude, coords.longitude]) || [

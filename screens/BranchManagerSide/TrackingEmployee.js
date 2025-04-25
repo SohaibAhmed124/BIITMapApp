@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, Activity
 import { WebView } from "react-native-webview";
 import api from "../Api/ManagerApi";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 
-const TrackingScreen = ({ managerId = 1 }) => {
+const TrackingScreen = ({ navigation, route }) => {
     const [employees, setEmployees] = useState([]);
     const [filteredEmployees, setFilteredEmployees] = useState([]);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -17,6 +18,7 @@ const TrackingScreen = ({ managerId = 1 }) => {
     const [loading, setLoading] = useState(false);
     const [selectedGeofence, setSelectedGeofence] = useState(null);
     const webViewRef = useRef(null);
+    const { managerId } = route.params;
 
     useEffect(() => {
         fetchEmployees();
@@ -95,6 +97,12 @@ const TrackingScreen = ({ managerId = 1 }) => {
 
     return (
         <View style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Icon name="arrow-left" size={26} color="#fff" />
+                </TouchableOpacity>
+                <Text style={styles.headerText}>Tracking</Text>
+            </View>
             <TextInput
                 style={styles.searchBar}
                 placeholder="Search employee..."
@@ -129,6 +137,7 @@ const TrackingScreen = ({ managerId = 1 }) => {
                 keyExtractor={(item) => item.employee_id.toString()}
                 renderItem={renderEmployeeItem}
                 style={styles.employeeList}
+                removeClippedSubviews={false}
             />
 
             <View style={styles.mapContainer}>
@@ -175,6 +184,22 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 8,
         backgroundColor: "#fff",
+    }, header: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 10,
+        backgroundColor: "rgb(73, 143, 235)",
+        borderRadius: 10,
+        paddingHorizontal: 10,
+    },
+    backButton: {
+        padding: 5,
+    },
+    headerText: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#fff",
+        marginLeft: 15,
     },
     searchBar: {
         borderWidth: 1,

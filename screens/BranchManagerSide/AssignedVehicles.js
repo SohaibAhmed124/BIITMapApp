@@ -15,19 +15,22 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import ManagerApi from '../Api/ManagerApi';
 import AdminService from '../Api/AdminApiService';
 
-const AssignedVehicleListScreen = ({ navigation }) => {
+const API_BASE_URL = 'http://192.168.1.11:3000';
+
+const AssignedVehicleListScreen = ({ navigation, route }) => {
   const [assignedVehicles, setAssignedVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { managerId } = route.params;
 
   const fetchAssignedVehicles = async () => {
     try {
       setLoading(true);
 
       // Step 1: Get employees under the manager
-      const employeeResponse = await ManagerApi.getEmployeesByManager(1);
+      const employeeResponse = await ManagerApi.getEmployeesByManager(managerId);
       const employees = employeeResponse.employees || [];
       const employeeIds = employees.map(emp => emp.employee_id);
 
@@ -117,7 +120,7 @@ const AssignedVehicleListScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Assigned Vehicles</Text>
@@ -173,8 +176,6 @@ const AssignedVehicleListScreen = ({ navigation }) => {
   );
 };
 
-const API_BASE_URL = 'http://192.168.1.11:3000';
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -183,8 +184,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#2E86C1',
+    margin:10,
+    paddingVertical: 10,
+    paddingHorizontal: 10, // Adjusted padding
+    backgroundColor: 'rgb(73, 143, 235)',
+    borderRadius: 10, // Added border radius
+  },
+  backButton: {
+    padding: 5, // Hit area for back button
+    marginRight: 10, // Space between button and title
   },
   headerText: {
     fontSize: 20,

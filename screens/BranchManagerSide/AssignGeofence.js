@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { SelectList, MultipleSelectList } from "react-native-dropdown-select-list";
+import Icon from 'react-native-vector-icons/Ionicons';
 import api from "../Api/ManagerApi";
 import GeofenceService from "../Api/GeofenceApi";
 
@@ -107,7 +108,13 @@ const AssignGeofenceScreen = ({ navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Assign Geofence</Text>
+      {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Icon name="arrow-back" size={24} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.headerText}>Assign Geofence</Text>
+            </View>
 
       <Text style={styles.label}>Select Employees</Text>
       <MultipleSelectList
@@ -229,11 +236,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
   },
   header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#343a40",
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#2E86C1',
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#fff',
+    marginLeft: 15,
   },
   label: {
     fontSize: 16,
