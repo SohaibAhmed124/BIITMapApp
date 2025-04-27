@@ -67,7 +67,6 @@ const AssignedGeofenceListScreen = ({ navigation, route }) => {
     }
     try {
       // TODO: Replace '1' with dynamic manager ID
-      const managerId = 1;
       const employeesResponse = await api.getEmployeesByManager(managerId);
       const employees = employeesResponse.employees || [];
 

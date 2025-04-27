@@ -13,9 +13,9 @@ const ManagerDashboard = () => {
     { icon: "account-plus", title: "Assign Geofence", screen: "AssignGeofence" },
     { icon: "car", title: "Assign Vehicle", screen: "AssignVehicle" },
     { icon: "map-marker-radius", title: "Assigned Geofence", screen: "AssignedGeofences" },
-    { icon: "office-building", title: "Assigned Vehicle", screen: "AssignedVehicles" },
-    { icon: "map-marker-radius", title: "Tracking", screen: "EmployeeTracking" },
-    { icon: "office-building", title: "Violation", screen: "ViewViolation" }
+    { icon: "car-multiple", title: "Assigned Vehicle", screen: "AssignedVehicles" },
+    { icon: "map-search-outline", title: "Tracking", screen: "EmployeeTracking" },
+    { icon: "alert-outline", title: "Violation", screen: "ViewViolation" }
   ];
 
   return (
