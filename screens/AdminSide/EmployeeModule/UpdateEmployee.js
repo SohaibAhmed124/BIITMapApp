@@ -40,7 +40,7 @@ const UpdateUser = () => {
       phone,
       city,
       address,
-      role:(isManager?"Manager":"Employee")
+      role:(isManager?"Manager":"Employee"),
     };
 
     try {

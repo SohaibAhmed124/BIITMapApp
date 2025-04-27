@@ -1,6 +1,8 @@
 import axios from "axios";
+import { BASE_URL } from "./BaseConfig";
 
-const API_BASE_URL = "http://192.168.1.11:3000/api"; // Update with your actual backend URL
+
+const API_BASE_URL = `${BASE_URL}/api`; // Update with your actual backend URL
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -32,7 +34,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-const api = {
+const ManagerApi = {
   /**
    * Assign geofence to multiple employees
    * @param {number[]} employeeIds - Array of employee IDs
@@ -171,4 +173,4 @@ const api = {
   // Add more methods as needed...
 };
 
-export default api;
+export default ManagerApi;

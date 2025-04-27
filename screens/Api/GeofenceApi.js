@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { BASE_URL } from './BaseConfig';
 
-const API_BASE_URL = 'http://192.168.1.11:3000/api/admin'; // Replace with your backend URL
+const API_BASE_URL = `${BASE_URL}/api/admin`; // Replace with your backend URL
 
 const GeofenceService = {
   // Create a new geofence

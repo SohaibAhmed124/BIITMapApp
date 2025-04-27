@@ -1,0 +1,1 @@
+export var BASE_URL = 'http://192.168.1.11:3000'; // Replace with actual backend URL

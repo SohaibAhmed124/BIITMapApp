@@ -8,6 +8,7 @@ import {
   Pressable
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons";
+import { API_BASE_URL } from '../../Api/BaseConfig';
 
 const UserDetail = ({ route, navigation }) => {
   const { userData } = route.params;
@@ -24,7 +25,11 @@ const UserDetail = ({ route, navigation }) => {
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         <Image
-          source={{ uri: user.imagePath || 'https://logodownload.org/wp-content/uploads/2019/07/udemy-logo-5.png' }}
+          source={{
+            uri: user.image
+              ? `${API_BASE_URL}${user.image}`
+              : 'https://logodownload.org/wp-content/uploads/2019/07/udemy-logo-5.png'
+          }}
           style={styles.profileImage}
         />
         <Text style={styles.userName}>{user.first_name + ' ' + user.last_name}</Text>

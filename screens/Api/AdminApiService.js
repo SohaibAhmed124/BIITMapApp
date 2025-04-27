@@ -1,16 +1,26 @@
 import axios from 'axios';
+import { BASE_URL } from './BaseConfig';
 
-const API_BASE_URL = 'http://192.168.1.11:3000/api'; // Replace with actual backend URL
+const API_BASE_URL = `${BASE_URL}/api`; // Replace with actual backend URL
+console.log(API_BASE_URL);
 
 const AdminService = {
   // Create a new user
-  createUser: async (userData) => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/admin/create-user`, userData);
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'Error creating user' };
-    }
+  // createUser: async (userData) => {
+  //   try {
+  //     const response = await axios.post(`${API_BASE_URL}/admin/create-user`, userData);
+  //     return response.data;
+  //   } catch (error) {
+  //     throw error.response?.data || { message: 'Error creating user' };
+  //   }
+  // },
+  createUser: async (formData) => {
+    const response = await axios.post(`${API_BASE_URL}/admin/create-user`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
   },
 
   // Get all users
@@ -43,9 +53,13 @@ const AdminService = {
     }
   },
   // Vehicle Management
-  createVehicle: async (vehicleData) => {
+  createVehicle: async (formData) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/admin/create-vehicle`, vehicleData);
+      const response = await axios.post(`${API_BASE_URL}/admin/create-vehicle`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error creating vehicle' };

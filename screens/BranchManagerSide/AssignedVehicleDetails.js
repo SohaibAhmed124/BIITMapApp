@@ -9,9 +9,11 @@ import {
   TouchableOpacity
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { BASE_URL } from '../Api/BaseConfig';
 
 const AssignedVehicleDetailsScreen = ({ route }) => {
   const { vehicle } = route.params;
+  {console.log(vehicle)}
 
   const handleCallEmployee = () => {
     if (vehicle.employee_phone) {
@@ -26,7 +28,7 @@ const AssignedVehicleDetailsScreen = ({ route }) => {
       <View style={styles.imageSection}>
         {vehicle.image ? (
           <Image 
-            source={{ uri: `${API_BASE_URL}/images/vehicles/${vehicle.image}` }}
+            source={{ uri: `${BASE_URL}${vehicle.image}` }}
             style={styles.vehicleImage}
             resizeMode="cover"
           />
@@ -48,7 +50,7 @@ const AssignedVehicleDetailsScreen = ({ route }) => {
         <View style={styles.employeeCard}>
           {vehicle.employee_image ? (
             <Image 
-              source={{ uri: `${API_BASE_URL}/images/employees/${vehicle.employee_image}` }}
+              source={{ uri: `${BASE_URL}${vehicle.employee_image}` }}
               style={styles.employeeImage}
             />
           ) : (
@@ -109,7 +111,6 @@ const AssignedVehicleDetailsScreen = ({ route }) => {
   );
 };
 
-const API_BASE_URL = 'http://192.168.1.11:3000';
 
 const styles = StyleSheet.create({
   container: {

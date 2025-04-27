@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity, ActivityIndicator, Animated } from "react-native";
 import { WebView } from "react-native-webview";
 import api from "../Api/ManagerApi";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { SelectList } from "react-native-dropdown-select-list";
+
 
 
 const TrackingScreen = ({ navigation, route }) => {
@@ -19,6 +21,46 @@ const TrackingScreen = ({ navigation, route }) => {
     const [selectedGeofence, setSelectedGeofence] = useState(null);
     const webViewRef = useRef(null);
     const { managerId } = route.params;
+    const slideAnim = useRef(new Animated.Value(200)).current; // vertical position
+    const opacityAnim = useRef(new Animated.Value(0)).current; // opacity
+
+
+    useEffect(() => {
+        if (selectedGeofence) {
+            Animated.parallel([
+                Animated.timing(slideAnim, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(opacityAnim, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        }
+    }, [selectedGeofence]);
+    
+
+    const handleCloseCard = () => {
+        Animated.parallel([
+            Animated.timing(slideAnim, {
+                toValue: 200, // move it down
+                duration: 300,
+                useNativeDriver: true,
+            }),
+            Animated.timing(opacityAnim, {
+                toValue: 0, // fade out
+                duration: 300,
+                useNativeDriver: true,
+            }),
+        ]).start(() => {
+            setSelectedGeofence(null);
+        });
+    };
+    
+
 
     useEffect(() => {
         fetchEmployees();
@@ -61,13 +103,13 @@ const TrackingScreen = ({ navigation, route }) => {
     };
 
 
-    const handleSearch = (text) => {
-        setSearchText(text);
-        const filtered = employees.filter((emp) =>
-            `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(text.toLowerCase())
-        );
-        setFilteredEmployees(filtered);
-    };
+    // const handleSearch = (text) => {
+    //     setSearchText(text);
+    //     const filtered = employees.filter((emp) =>
+    //         `${emp.first_name} ${emp.last_name}`.toLowerCase().includes(text.toLowerCase())
+    //     );
+    //     setFilteredEmployees(filtered);
+    // };
 
     const handleToggleLocation = () => {
         setShowLocation(!showLocation);
@@ -83,17 +125,17 @@ const TrackingScreen = ({ navigation, route }) => {
         }
     };
 
-    const renderEmployeeItem = ({ item }) => (
-        <TouchableOpacity
-            style={[
-                styles.employeeItem,
-                selectedEmployee === item.employee_id && styles.selectedEmployee,
-            ]}
-            onPress={() => fetchEmployeeDetails(item.employee_id)}
-        >
-            <Text style={styles.employeeName}>{`${item.first_name} ${item.last_name}`}</Text>
-        </TouchableOpacity>
-    );
+    // const renderEmployeeItem = ({ item }) => (
+    //     <TouchableOpacity
+    //         style={[
+    //             styles.employeeItem,
+    //             selectedEmployee === item.employee_id && styles.selectedEmployee,
+    //         ]}
+    //         onPress={() => fetchEmployeeDetails(item.employee_id)}
+    //     >
+    //         <Text style={styles.employeeName}>{`${item.first_name} ${item.last_name}`}</Text>
+    //     </TouchableOpacity>
+    // );
 
     return (
         <View style={styles.container}>
@@ -103,12 +145,12 @@ const TrackingScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
                 <Text style={styles.headerText}>Tracking</Text>
             </View>
-            <TextInput
+            {/* <TextInput
                 style={styles.searchBar}
                 placeholder="Search employee..."
                 value={searchText}
                 onChangeText={handleSearch}
-            />
+            /> */}
 
             <View style={styles.buttonRow}>
                 <TouchableOpacity style={styles.toggleButton} onPress={handleToggleLocation}>
@@ -130,7 +172,7 @@ const TrackingScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             </View>
 
-            <FlatList
+            {/* <FlatList
                 data={filteredEmployees}
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -138,7 +180,49 @@ const TrackingScreen = ({ navigation, route }) => {
                 renderItem={renderEmployeeItem}
                 style={styles.employeeList}
                 removeClippedSubviews={false}
+            /> */}
+
+            <SelectList
+                data={employees.map((emp) => ({
+                    key: emp.employee_id,
+                    value: `${emp.first_name} ${emp.last_name}`,
+                }))}
+                setSelected={(val) => {
+                    const selected = employees.find(emp => `${emp.first_name} ${emp.last_name}` === val);
+                    if (selected) {
+                        fetchEmployeeDetails(selected.employee_id);
+                    }
+                }}
+                placeholder="Select Employee"
+                search={true}
+                save="value"
+                boxStyles={{
+                    backgroundColor: "#f1f5f9",
+                    borderRadius: 10,
+                    borderColor: "#3b82f6",
+                    borderWidth: 1,
+                    marginBottom: 8,
+                    paddingHorizontal: 7,
+                }}
+                dropdownStyles={{
+                    backgroundColor: "#f1f5f9",
+                    borderRadius: 10,
+                    borderColor: "#3b82f6",
+                    borderWidth: 1,
+                }}
+                inputStyles={{
+                    color: "#000",
+                }}
+                dropdownItemStyles={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 10,
+                }}
+                dropdownTextStyles={{
+                    color: "#000",
+                }}
+                searchPlaceholder="Search employee..."
             />
+
 
             <View style={styles.mapContainer}>
                 {loading && <ActivityIndicator size="large" color="blue" style={styles.loading} />}
@@ -147,8 +231,8 @@ const TrackingScreen = ({ navigation, route }) => {
                     originWhitelist={["*"]}
                     source={require("../../assets/tracking.html")}
                     style={styles.map}
-                    javaScriptEnabled
-                    domStorageEnabled
+                    javaScriptEnabled={true}
+                    domStorageEnabled={true}
                     onMessage={(event) => {
                         try {
                             const data = JSON.parse(event.nativeEvent.data);
@@ -164,16 +248,36 @@ const TrackingScreen = ({ navigation, route }) => {
                 />
             </View>
             {selectedGeofence && (
-                <View style={styles.geofenceCard}>
-                    <Text style={styles.geofenceTitle}>{selectedGeofence.geofence_name}</Text>
-                    <Text>Status: {selectedGeofence.is_violating ? "Violating" : "Safe"}</Text>
-                    <Text>Assigned To: {selectedGeofence.assigned_employee?.first_name} {selectedGeofence.assigned_employee?.last_name}</Text>
+    <Animated.View style={[
+        styles.geofenceCard,
+        { 
+            transform: [{ translateY: slideAnim }],
+            opacity: opacityAnim, // fade effect
+        }
+    ]}>
+        <View style={styles.cardHeader}>
+            <Text style={styles.geofenceTitle}>{selectedGeofence.geofence_name}</Text>
+            <TouchableOpacity onPress={handleCloseCard}>
+                <Ionicons name="close-circle" size={24} color="#3b82f6" />
+            </TouchableOpacity>
+        </View>
 
-                    <TouchableOpacity onPress={() => setSelectedGeofence(null)}>
-                        <Text style={{ color: "blue", marginTop: 6 }}>Close</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
+        <View style={styles.cardBody}>
+            <Text style={styles.cardLabel}>Status:</Text>
+            <Text style={styles.cardValue}>
+                {selectedGeofence.is_violating ? "🚨 Violating" : "✅ Safe"}
+            </Text>
+
+            <Text style={[styles.cardLabel, { marginTop: 8 }]}>Assigned To:</Text>
+            <Text style={styles.cardValue}>
+                {employeeLocation.first_name} {employeeLocation.last_name}
+            </Text>
+        </View>
+    </Animated.View>
+)}
+
+
+
 
         </View>
     );
@@ -260,20 +364,46 @@ const styles = StyleSheet.create({
         bottom: 10,
         left: 10,
         right: 10,
-        backgroundColor: "#fff",
-        borderRadius: 12,
-        padding: 12,
+        backgroundColor: "#ffffff",
+        borderRadius: 16,
+        padding: 16,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: "#e0e0e0",
     },
+
+    cardHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 12,
+    },
+
+    cardBody: {
+        marginTop: 4,
+    },
+
     geofenceTitle: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: "bold",
-        marginBottom: 4,
-    }
+        color: "#111827",
+    },
+
+    cardLabel: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#6b7280",
+    },
+
+    cardValue: {
+        fontSize: 16,
+        color: "#111827",
+    },
+
 });
 
 export default TrackingScreen;

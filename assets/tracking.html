@@ -52,7 +52,7 @@
 
         let locationMarker = null;
         let geofenceLayers = [];
-        let geof = {};
+
         function updateMap(employeeLocation, geofences) {
             // Clear old geofences
             geofenceLayers.forEach(layer => map.removeLayer(layer));
@@ -67,6 +67,13 @@
                         fillOpacity: 0.3,
                     }).addTo(map);
                     polygon.bindPopup(`${geo.geofence_name}`);
+                    polygon.on("click", () => {
+                        const message = {
+                            type: "geofence_click",
+                            geofence: geo,
+                        };
+                        window.ReactNativeWebView.postMessage(JSON.stringify(message));
+                    });
                     geofenceLayers.push(polygon);
                 } else if (boundary.length === 1) {
                     const circle = L.circle(boundary[0], {
@@ -75,6 +82,13 @@
                         fillOpacity: 0.3,
                     }).addTo(map);
                     circle.bindPopup(`${geo.geofence_name}`);
+                    circle.on("click", () => {
+                        const message = {
+                            type: "geofence_click",
+                            geofence: geo,
+                        };
+                        window.ReactNativeWebView.postMessage(JSON.stringify(message));
+                    });
                     geofenceLayers.push(circle);
                 }
             });
@@ -98,25 +112,8 @@
                     locationMarker = null;
                 }
             }
-
-
         }
-        polygon.on("click", () => {
-            const message = {
-                type: "geofence_click",
-                geofence: geof,
-            };
-            window.ReactNativeWebView.postMessage(JSON.stringify(message));
-        });
-        circle.on("click", () => {
-            const message = {
-                type: "geofence_click",
-                geofence: geof,
-            };
-            window.ReactNativeWebView.postMessage(JSON.stringify(message));
-        });
     </script>
-
 </body>
 
 </html>

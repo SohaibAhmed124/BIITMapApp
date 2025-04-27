@@ -14,8 +14,7 @@ import { Searchbar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ManagerApi from '../Api/ManagerApi';
 import AdminService from '../Api/AdminApiService';
-
-const API_BASE_URL = 'http://192.168.1.11:3000';
+import { BASE_URL } from '../Api/BaseConfig';
 
 const AssignedVehicleListScreen = ({ navigation, route }) => {
   const [assignedVehicles, setAssignedVehicles] = useState([]);
@@ -68,7 +67,7 @@ const AssignedVehicleListScreen = ({ navigation, route }) => {
           employee_image: emp.image,
         };
       }).filter(Boolean);
-
+      console.log(enriched)
       setAssignedVehicles(enriched);
       setFilteredVehicles(enriched);
     } catch (error) {
@@ -150,7 +149,7 @@ const AssignedVehicleListScreen = ({ navigation, route }) => {
               <View style={styles.imageWrapper}>
                 {vehicle.image ? (
                   <Image
-                    source={{ uri: `${API_BASE_URL}/images/vehicles/${vehicle.image}` }}
+                    source={{ uri: `${BASE_URL}${vehicle.image}` }}
                     style={styles.vehicleImage}
                     defaultSource={require('../../assets/default_vehicle.png')}
                   />

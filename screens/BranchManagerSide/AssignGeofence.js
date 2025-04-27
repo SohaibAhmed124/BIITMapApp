@@ -9,12 +9,12 @@ import {
 } from "react-native";
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { SelectList, MultipleSelectList } from "react-native-dropdown-select-list";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import api from "../Api/ManagerApi";
 import GeofenceService from "../Api/GeofenceApi";
 
-const AssignGeofenceScreen = ({ navigation }) => {
-  const managerId = 1;
+const AssignGeofenceScreen = ({ navigation, route }) => {
+  const {managerId} = route.params;
   const [employees, setEmployees] = useState([]);
   const [geofences, setGeofences] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -109,12 +109,13 @@ const AssignGeofenceScreen = ({ navigation }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
-            <View style={styles.header}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Icon name="arrow-back" size={24} color="#fff" />
-              </TouchableOpacity>
-              <Text style={styles.headerText}>Assign Geofence</Text>
-            </View>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Icon name="arrow-left" size={26} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Assign Geofence</Text>
+      </View>
+
 
       <Text style={styles.label}>Select Employees</Text>
       <MultipleSelectList
@@ -236,15 +237,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#2E86C1',
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    backgroundColor: "rgb(73, 143, 235)",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+  },
+  backButton: {
+    padding: 5,
   },
   headerText: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "bold",
+    color: "#fff",
     marginLeft: 15,
   },
   label: {

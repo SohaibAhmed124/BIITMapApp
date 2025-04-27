@@ -43,6 +43,7 @@ import ViolationsScreen from './screens/BranchManagerSide/ViewViolation';
 import ManagerDashboard from './screens/BranchManagerSide/ManagerDashboard';
 
 import LeafletMap from './screens/MapAdminSide/CongestionSimulation';
+import EmployeeMovementSimulatorScreen from './screens/MapAdminSide/UserLocationSimulation';
 
 const Stack = createNativeStackNavigator();
 const EmployeeStack = createNativeStackNavigator();
@@ -114,7 +115,7 @@ const ManagerNavigator = () => {
 
 function RootStack() {
   return (
-    <Stack.Navigator initialRouteName='AdminView' screenOptions={{headerShown:false}}>
+    <Stack.Navigator initialRouteName='ManagerSide' screenOptions={{headerShown:false}}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="AdminView" component={AdminDashboard}/>
       <Stack.Screen name="ManagerSide" component={ManagerNavigator}/>
@@ -129,9 +130,9 @@ function RootStack() {
 export default function App() {
   return (
     <NavigationContainer>
-      {/* <RootStack /> */}
-      <ManagerNavigator/>
+      <RootStack />
+      {/* <ManagerNavigator/> */}
     </NavigationContainer>
-    // <ViolationsScreen/>
+    // <EmployeeMovementSimulatorScreen/>
   );
 }

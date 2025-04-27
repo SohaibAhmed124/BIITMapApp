@@ -97,7 +97,7 @@ const ViolationsScreen = ({ navigation, route }) => {
           <View style={styles.detailsContainer}>
             <Divider style={styles.detailsDivider} />
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Location:</Text>
+              <Text style={styles.detailLabel}>Geofence:</Text>
               <Text style={styles.detailValue}>{item.geo_name}</Text>
             </View>
           </View>

@@ -49,16 +49,20 @@ const AddVehicle = () => {
     }
     setLoading(true);
 
-    const car = {
+    const formData = new FormData();
+    formData.append('model', model);
+    formData.append('year', year);
+    formData.append('isActive',true);
 
-      "model": model,
-      "year": year,
-      "image": image.uri,
-      "isActive": true
-    };
+    formData.append('image', {
+      uri: image.uri,
+      name: image.fileName || 'profile.jpg',
+      type: image.type || 'image/jpeg',
+    });
+  
 
     try {
-      const response = await AdminService.createVehicle(car);
+      const response = await AdminService.createVehicle(formData);
       Alert.alert('Success', response.message || 'Vehicle added successfully');
       navigation.goBack();
     } catch (error) {

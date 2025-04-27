@@ -69,35 +69,40 @@ const AddNewUserScreen = () => {
       Alert.alert('Error', 'Please fill all fields and provide an image.');
       return;
     }
-
+  
     setLoading(true);
-
-    // Prepare user data and call the addNewUser API function
-    const user = {
-
-      "username": userName,
-      "email": email,
-      "password": passwrd,
-      "role": (isManager ? "Manager" : "Employee"),
-      "first_name": firstName,
-      "last_name": lastName,
-      "address": address,
-      "city": city,
-      "phone": phone,
-      "branch_name": branchName,
-    };
-
+  
     try {
-      const response = await AdminApiService.createUser(user);
+      const formData = new FormData();
+      formData.append('username', userName);
+      formData.append('email', email);
+      formData.append('password', passwrd);
+      formData.append('role', isManager ? 'Manager' : 'Employee');
+      formData.append('first_name', firstName);
+      formData.append('last_name', lastName);
+      formData.append('address', address);
+      formData.append('city', city);
+      formData.append('phone', phone);
+      formData.append('branch_name', branchName);
+  
+      // ✅ Corrected image field name
+      formData.append('image', {
+        uri: image.uri,
+        name: image.fileName || 'profile.jpg',
+        type: image.type || 'image/jpeg',
+      });
+  
+      const response = await AdminApiService.createUser(formData);
       Alert.alert('Success', response.message || 'User added successfully');
       navigation.goBack();
     } catch (error) {
       console.error('Submit error:', error);
       Alert.alert('Error', error.message || 'An error occurred');
     } finally {
-      setLoading(false); // Stop loading animation after API call completes
+      setLoading(false);
     }
   };
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

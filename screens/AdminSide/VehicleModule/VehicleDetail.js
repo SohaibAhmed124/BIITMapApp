@@ -7,7 +7,9 @@ import {
   Pressable
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons";
-const VehicleDetail = ({ route }) => {
+import { API_BASE_URL } from '../../Api/BaseConfig';
+
+const VehicleDetail = ({ navigation, route }) => {
   const { data } = route.params; // Retrieve vehicleId from params
   const [vehicle, setVehicle] = useState(data);
 
@@ -29,11 +31,16 @@ const VehicleDetail = ({ route }) => {
         <Text style={styles.headerText}>Vehicle Details</Text>
       </View>
       <View style={styles.content}>
-        <Image
-          source={{ uri: vehicle.image || 'https://via.placeholder.com/150' }} // Placeholder if image is unavailable
-          style={styles.vehicleImage}
-        />
+        {console.log(vehicle)}
+        
         <Text style={styles.vehicleModel}>{vehicle.model}</Text>
+        <Image
+          source={{  uri: vehicle.image
+                        ? `${API_BASE_URL}${vehicle.image}` 
+                        : 'https://via.placeholder.com/150' 
+                  }} // Placeholder if image is unavailable
+          style={{height:150, width:250}}
+        />
         <Text style={styles.vehicleDetail}>
           <Text style={styles.label}>Year: </Text>
           {vehicle.year || 'N/A'}
