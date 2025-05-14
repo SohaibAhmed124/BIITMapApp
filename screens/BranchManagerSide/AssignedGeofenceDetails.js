@@ -48,7 +48,7 @@ const AssignedGeofenceDetailsScreen = ({ route }) => {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{geofence.geofence_name}</Text>
-        <Text style={styles.subtitle}>Assigned to Employee #{geofence.employee_id}</Text>
+        <Text style={styles.subtitle}>Assigned to {employee.name}</Text>
       </View>
 
       <View style={styles.mapContainer}>
