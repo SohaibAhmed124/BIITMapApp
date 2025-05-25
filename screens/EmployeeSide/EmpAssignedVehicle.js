@@ -6,35 +6,32 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
-
-import { useEmployeeContext } from '../Context/EmployeeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import EmployeeService from '../Api/EmployeeApi';
 import ManagerApi from '../Api/ManagerApi';
 import { BASE_URL } from '../Api/BaseConfig';
-import Header from './EmpHeader';
 
 const EmpAssignedVehicleScreen = ({ route, navigation }) => {
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { employeeId} = useEmployeeContext(); 
+  const { employeeId } = route.params;
 
   useEffect(() => {
     const fetchAssignedVehicle = async () => {
-      
-       try {
-        const assignedResponse = await ManagerApi.getAssignedVehicles({employeeId});
+      try {
+        const assignedResponse = await ManagerApi.getAssignedVehicles({ employeeId });
         let assign_date = 0;
         if (assignedResponse.vehicles && assignedResponse.vehicles.length > 0) {
           assign_date = assignedResponse.vehicles[0].assign_date;
         }
-        
-        const response = await EmployeeService.getAssignedVehicles(employeeId);
-        if (response.vehicles && response.vehicles.length > 0) {
-            setVehicle({...response.vehicles[0], assign_date});
-        }
 
+        const response = await EmployeeService.getAssignedVehicles(employeeId);
+        console.log(response.vehicles)
+        if (response.vehicles && response.vehicles.length > 0) {
+          setVehicle({ ...response.vehicles[0], assign_date });
+        }
       } catch (error) {
         console.error('Failed to load assigned vehicle', error);
       } finally {
@@ -55,6 +52,14 @@ const EmpAssignedVehicleScreen = ({ route, navigation }) => {
     });
   };
 
+  const renderDetailRow = (icon, label, value) => (
+    <View style={styles.detailRow}>
+      <Icon name={icon} size={24} color="#2E86C1" />
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailValue}>{value || 'N/A'}</Text>
+    </View>
+  );
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -72,75 +77,56 @@ const EmpAssignedVehicleScreen = ({ route, navigation }) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      
-        {/* Custom Header */}
-          {/* <View style={styles.customHeader}>
-            <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}>
-              <Text style={styles.menuButton}>☰</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Manager Dashboard</Text>
-          </View> */}
-          <Header title="Assiged Vehicle"/>
-          {/* Vehicle Image Section */}
-      <View style={styles.imageSection}>
-        {vehicle.image ? (
-          <Image
-            source={{ uri: `${BASE_URL}${vehicle.image}` }}
-            style={styles.vehicleImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={[styles.vehicleImage, styles.noImage]}>
-            <Icon name="car-outline" size={60} color="#ccc" />
-          </View>
-        )}
-        <Text style={styles.vehicleTitle}>{vehicle.model}</Text>
-        {vehicle.year && (
-          <Text style={styles.vehicleYear}>{vehicle.year}</Text>
-        )}
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Icon name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Assigned Vehicle</Text>
       </View>
 
-      {/* Vehicle Details Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Vehicle Details</Text>
-
-        <View style={styles.detailRow}>
-          <Icon name="information-circle-outline" size={24} color="#2E86C1" />
-          <Text style={styles.detailLabel}>Model:</Text>
-          <Text style={styles.detailValue}>{vehicle.model}</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Vehicle Image */}
+        <View style={styles.imageSection}>
+          {vehicle.image ? (
+            <Image
+              source={{ uri: `${BASE_URL}${vehicle.image}` }}
+              style={styles.vehicleImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={[styles.vehicleImage, styles.noImage]}>
+              <Icon name="car-outline" size={60} color="#ccc" />
+            </View>
+          )}
+          <Text style={styles.vehicleTitle}>{vehicle.model || 'N/A'}</Text>
+          {vehicle.year && <Text style={styles.vehicleYear}>{vehicle.year}</Text>}
         </View>
 
-        {vehicle.year && (
-          <View style={styles.detailRow}>
-            <Icon name="calendar-outline" size={24} color="#2E86C1" />
-            <Text style={styles.detailLabel}>Year:</Text>
-            <Text style={styles.detailValue}>{vehicle.year}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Assignment Info Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Assignment Info</Text>
-
-        <View style={styles.detailRow}>
-          <Icon name="calendar-sharp" size={24} color="#2E86C1" />
-          <Text style={styles.detailLabel}>Assigned On:</Text>
-          <Text style={styles.detailValue}>
-            {formatDate(vehicle.assign_date)}
-          </Text>
+        {/* Vehicle Details */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Vehicle Details</Text>
+          {renderDetailRow('information-circle-outline', 'Model:', vehicle.model)}
+          {renderDetailRow('calendar-outline', 'Year:', vehicle.year)}
+          {renderDetailRow('card-outline', 'Registration #:', vehicle.registration_number)}
+          {renderDetailRow('color-palette-outline', 'Color:', vehicle.color)}
+          {renderDetailRow('flame-outline', 'Fuel Type:', vehicle.fuel_type)}
+          {renderDetailRow('speedometer-outline', 'Mileage:', vehicle.mileage)}
         </View>
 
-        <View style={styles.detailRow}>
-          <Icon name="checkmark-circle-outline" size={24} color="#2E86C1" />
-          <Text style={styles.detailLabel}>Availability:</Text>
-          <Text style={styles.detailValue}>
-            {vehicle.is_available ? 'Available' : 'Not Available'}
-          </Text>
+        {/* Assignment Info */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Assignment Info</Text>
+          {renderDetailRow('calendar-sharp', 'Assigned On:', formatDate(vehicle.assign_date))}
+          {renderDetailRow(
+            'checkmark-circle-outline',
+            'Availability:',
+            vehicle.is_available ? 'Available' : 'Not Available'
+          )}
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -148,23 +134,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-  },customHeader: {
-  height: 60,
-  backgroundColor: '#007AFF',
-  flexDirection: 'row',
-  alignItems: 'center',
-  paddingHorizontal: 16,
-},
-menuButton: {
-  fontSize: 24,
-  color: 'white',
-  marginRight: 12,
-},
-headerTitle: {
-  fontSize: 20,
-  fontWeight: 'bold',
-  color: 'white',
-},
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+ header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    backgroundColor: "rgb(73, 143, 235)",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    margin:15,
+  },
+  backButton: {
+    padding: 5,
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    marginLeft: 15,
+  },
   imageSection: {
     alignItems: 'center',
     padding: 20,
@@ -205,7 +196,7 @@ headerTitle: {
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 12,
   },
   detailLabel: {
     fontSize: 16,

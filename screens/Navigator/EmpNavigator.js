@@ -1,19 +1,20 @@
 import React from 'react';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import EmployeeProfileScreen from '../EmployeeSide/EmpProfile';
 import EmpAssignedVehicleScreen from '../EmployeeSide/EmpAssignedVehicle';
 import EmpAssignedGeofenceScreen from '../EmployeeSide/EmpAssignedGeofence';
+import EmpViolation from '../EmployeeSide/EmpViolation';
 import EmpDashboardScreen from '../EmployeeSide/EmpDashboard';
-
-const EmployeeDrawer = createDrawerNavigator();
+const EmpStack = createNativeStackNavigator();
 
 const EmpNavigator = () => {
   return(
-    <EmployeeDrawer.Navigator initialRouteName="Dashboard" screenOptions={{headerShown:false}}>
-        <EmployeeDrawer.Screen name="Dashboard" component={EmpDashboardScreen} />
-        <EmployeeDrawer.Screen name="EmpAssignedVehicle" component={EmpAssignedVehicleScreen} />
-        <EmployeeDrawer.Screen name="EmployeeProfile" component={EmployeeProfileScreen} />
-    </EmployeeDrawer.Navigator>
+    <EmpStack.Navigator initialRouteName="EmpDashboard" screenOptions={{headerShown:false}}>
+        <EmpStack.Screen name="EmpDashboard" component={EmpDashboardScreen} />
+        <EmpStack.Screen name="EmpAssignedVehicle" component={EmpAssignedVehicleScreen} />
+        <EmpStack.Screen name="EmpAssignedGeofence" component={EmpAssignedGeofenceScreen} />
+        <EmpStack.Screen name="EmpViolation" component={EmpViolation} />
+    </EmpStack.Navigator>
   );
 }
 

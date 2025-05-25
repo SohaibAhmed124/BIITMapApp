@@ -9,19 +9,25 @@ import {
   Card,
   Divider,
   useTheme,
+  IconButton,
 } from 'react-native-paper';
+import { WebView } from 'react-native-webview';
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import DateTimePicker from "react-native-modal-datetime-picker";
 import api from '../Api/ManagerApi';
+import GeofenceService from '../Api/GeofenceApi';
 import dayjs from 'dayjs';
 
 const ViolationsScreen = ({ navigation, route }) => {
-  const { managerId } = route.params; // Replace with your actual manager ID
+  const { managerId } = route.params;
   const [violations, setViolations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
   const theme = useTheme();
 
   useEffect(() => {
@@ -31,12 +37,32 @@ const ViolationsScreen = ({ navigation, route }) => {
   const fetchViolations = async () => {
     try {
       setLoading(true);
-      setRefreshing(true);
       setError(null);
-      const response = await api.getManagerViolations(managerId);
-      setViolations(response.violation || []);
+      const [ViolationRes, geofenceRes] = await Promise.all([
+        api.getManagerViolations(managerId),
+        GeofenceService.getAllGeofences(),
+      ]);
+
+      const geofenceMap = Array.isArray(geofenceRes)
+        ? geofenceRes.reduce((acc, gf) => {
+          acc[gf.geo_id] = gf;
+          return acc;
+        }, {})
+        : {};
+
+      const data = Array.isArray(ViolationRes.violation)
+        ? ViolationRes.violation.map(v => {
+          const matchedGeofence = geofenceMap[v.geo_id];
+          return {
+            ...v,
+            geo_boundary: matchedGeofence?.boundary || null,
+          };
+        })
+        : [];
+      console.log(data);
+      setViolations(data);
     } catch (err) {
-      console.error('Failed to fetch violations:', err);
+      console.error(err);
       setError('Failed to load violations. Please try again.');
     } finally {
       setLoading(false);
@@ -44,13 +70,27 @@ const ViolationsScreen = ({ navigation, route }) => {
     }
   };
 
+  const handleDatePicked = (date) => {
+    setSelectedDate(date);
+    setDatePickerVisibility(false);
+  };
+
+  const clearDateFilter = () => {
+    setSelectedDate(null);
+  };
+
   const filteredViolations = violations.filter(violation => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    const matchesSearch =
       violation.first_name.toLowerCase().includes(searchLower) ||
-      violation.last_name.toLowerCase().includes(searchTerm) ||
-      violation.violation_type.toLowerCase().includes(searchLower)
-    );
+      violation.last_name.toLowerCase().includes(searchLower) ||
+      violation.violation_type.toLowerCase().includes(searchLower);
+
+    const matchesDate = selectedDate
+      ? dayjs(violation.violation_time).isSame(selectedDate, 'day')
+      : true;
+
+    return matchesSearch && matchesDate;
   });
 
   const getViolationColor = (type) => {
@@ -67,7 +107,46 @@ const ViolationsScreen = ({ navigation, route }) => {
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
   };
+  const generateMapHtml = (boundary) => {
+    if (!boundary || boundary.length === 0) return '';
 
+    const coordinates = boundary.map(point => [point.latitude, point.longitude]);
+    // Optional: close the polygon
+    coordinates.push([boundary[0].latitude, boundary[0].longitude]);
+
+    const polygonCoords = JSON.stringify(coordinates);
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        #map { height: 200px; width: 100%; border-radius: 8px; }
+        html, body { margin: 0; padding: 0; }
+      </style>
+      <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+      <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    </head>
+    <body>
+      <div id="map"></div>
+      <script>
+        var map = L.map('map',{zoomControl:false}).setView(${JSON.stringify(coordinates[0])}, 17);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19
+        }).addTo(map);
+
+        var polygon = L.polygon(${polygonCoords}, {
+          color: 'blue',
+          fillOpacity: 0.4
+        }).addTo(map);
+
+        map.fitBounds(polygon.getBounds());
+      </script>
+    </body>
+    </html>
+  `;
+  };
   const renderItem = ({ item }) => (
     <Card
       style={styles.itemCard}
@@ -100,6 +179,17 @@ const ViolationsScreen = ({ navigation, route }) => {
               <Text style={styles.detailLabel}>Geofence:</Text>
               <Text style={styles.detailValue}>{item.geo_name}</Text>
             </View>
+
+            {item.geo_boundary?.length > 0 && (
+              <View style={styles.mapContainer}>
+                <WebView
+                  originWhitelist={['*']}
+                  source={{ html: generateMapHtml(item.geo_boundary) }}
+                  style={styles.mapWebView}
+                  scrollEnabled={false}
+                />
+              </View>
+            )}
           </View>
         )}
       </Card.Content>
@@ -134,12 +224,37 @@ const ViolationsScreen = ({ navigation, route }) => {
         <Text style={styles.headerText}>Employee Violations</Text>
       </View>
 
-      <Searchbar
-        placeholder="Search by name or type..."
-        onChangeText={setSearchTerm}
-        value={searchTerm}
-        style={styles.searchbar}
-      />
+      {/* Searchbar with calendar icon */}
+      <View>
+        <Searchbar
+          placeholder="Search by name or type..."
+          onChangeText={setSearchTerm}
+          value={searchTerm}
+          style={styles.searchbar}
+          right={() => (
+            <IconButton
+              icon="calendar"
+              size={24}
+              onPress={() => setDatePickerVisibility(true)}
+            />
+          )}
+        />
+
+        {/* Show selected date as a chip below the searchbar */}
+        {selectedDate && (
+          <View style={styles.dateChipContainer}>
+            <Chip
+              icon="calendar"
+              onClose={clearDateFilter}
+              closeIcon="close"
+              mode="outlined"
+              style={styles.dateChip}
+            >
+              {dayjs(selectedDate).format('MMM D, YYYY')}
+            </Chip>
+          </View>
+        )}
+      </View>
 
       <FlatList
         data={filteredViolations}
@@ -156,7 +271,9 @@ const ViolationsScreen = ({ navigation, route }) => {
         ListEmptyComponent={
           <View style={styles.noResults}>
             <Text variant="bodyMedium">
-              {searchTerm ? 'No matching violations found' : 'No violations recorded'}
+              {searchTerm || selectedDate
+                ? 'No matching violations found'
+                : 'No violations recorded'}
             </Text>
           </View>
         }
@@ -164,16 +281,12 @@ const ViolationsScreen = ({ navigation, route }) => {
         removeClippedSubviews={false}
       />
 
-      <Button
-        mode="contained"
-        onPress={fetchViolations}
-        icon="refresh"
-        style={styles.refreshButton}
-        contentStyle={styles.buttonContent}
-      >
-        Refresh Data
-      </Button>
-
+      <DateTimePicker
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleDatePicked}
+        onCancel={() => setDatePickerVisibility(false)}
+      />
     </View>
   );
 };
@@ -192,6 +305,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
   },
+  mapContainer: {
+    height: 200,
+    marginTop: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  mapWebView: {
+    flex: 1,
+    borderRadius: 8,
+  },
   backButton: {
     padding: 5,
   },
@@ -201,27 +324,19 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginLeft: 15,
   },
-  card: {
-    margin: 5,
-    elevation: 3,
-    flex: 1,
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    marginBottom: 15,
-    fontWeight: 'bold',
-  },
   searchbar: {
     marginTop: 15,
-    marginBottom: 15,
+    marginBottom: 6,
     borderRadius: 8,
   },
-  listContent: {
-    paddingBottom: 15,
+  dateChipContainer: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    paddingLeft: 8,
+  },
+  dateChip: {
+    height: 32,
+    justifyContent: 'center',
   },
   itemCard: {
     marginHorizontal: 4,
@@ -287,11 +402,6 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  refreshButton: {
-    borderRadius: 8,
-    marginTop: 5,
-    backgroundColor: 'rgb(73, 143, 235)'
   },
   buttonContent: {
     height: 46,

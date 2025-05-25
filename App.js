@@ -4,8 +4,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import EmpNavigator from './screens/Navigator/EmpNavigator';
 import ManagerNavigator from './screens/Navigator/ManagerNavigator';
-
-import EmpAssignedGeofenceScreen from './screens/EmployeeSide/EmpAssignedGeofence'
+import AdminNavigator from './screens/Navigator/AdminNavigator';
+import LoginScreen from "./screens/LoginScreen.js";
 
 import { EmployeeProvider } from './screens/Context/EmployeeContext';
 
@@ -17,18 +17,18 @@ import MapMatchingScreen from './screens/MapAdminSide/MapMatch';
 import AddLocationScreen from './screens/MapAdminSide/AddLocation';
 import GetLocationScreen from './screens/MapAdminSide/getLocation';
 
-
-
 import LeafletMap from './screens/MapAdminSide/CongestionSimulation';
 import EmployeeMovementSimulatorScreen from './screens/MapAdminSide/UserLocationSimulation';
+
+
 
 const Stack = createNativeStackNavigator();
 
 function RootStack() {
   return (
-    <Stack.Navigator initialRouteName='ManagerSide' screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName='Login' screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="AdminView" component={AdminDashboard} />
+      <Stack.Screen name="AdminView" component={AdminNavigator} />
       <Stack.Screen name="ManagerSide" component={ManagerNavigator} />
       <Stack.Screen name="EmpSide" component={EmpNavigator}/>
     </Stack.Navigator>
@@ -40,13 +40,11 @@ export default function App() {
   return (
     <EmployeeProvider>
       <NavigationContainer>
-        {/* <RootStack /> */}
-        <ManagerNavigator/>
+        <RootStack />
+        {/* <ManagerNavigator/> */}
         {/* <EmpNavigator /> */}
       </NavigationContainer>
-    
     </EmployeeProvider>
-    // <EmpAssignedGeofenceScreen />
 
   );
 }

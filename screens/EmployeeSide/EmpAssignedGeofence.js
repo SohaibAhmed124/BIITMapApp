@@ -1,163 +1,268 @@
-import React, { useEffect, useState, useRef } from 'react';
-import {
-    View,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    Dimensions,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { format, parseISO } from 'date-fns';
 import { WebView } from 'react-native-webview';
-import { Card } from 'react-native-paper';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import EmployeeService from '../Api/EmployeeApi';
+import { SelectList } from 'react-native-dropdown-select-list';
 
-const AssignedGeofenceScreen = () => {
-    const employeeId = 2;
-    const [selectedGeofence, setSelectedGeofence] = useState(null);
-    const [geofences, setGeofences] = useState(null);
-    const webviewRef = useRef(null);
+const AssignedGeofenceDetailsScreen = ({ route, navigation }) => {
+    const { geofences, employeeName } = route.params;
+
+    const [selectedGeofenceId, setSelectedGeofenceId] = useState(geofences[0]?.geo_id);
+    const [selectedGeofence, setSelectedGeofence] = useState(geofences[0]);
+
+    const geofenceOptions = geofences.map(g => ({
+        key: g.geo_id,
+        value: g.geofence_name,
+    }));
 
     useEffect(() => {
-        const fetchAssignedGeofences = async () => {
-            try {
-                const response = await EmployeeService.getAssignedGeofences(employeeId);
-                if (response.geofences && response.geofences.length > 0) {
-                    setGeofences(response.geofences);
-                }
-            } catch (error) {
-                console.error('Failed to load assigned geofences', error);
-            }
-        };
-        fetchAssignedGeofences();
-    }, []);
+        const found = geofences.find(g => g.geo_id === selectedGeofenceId);
+        if (found) setSelectedGeofence(found);
+    }, [selectedGeofenceId]);
 
-    const html = `
+    const coordinates =
+        selectedGeofence?.geofence_boundary?.map(coords => [coords.latitude, coords.longitude]) || [];
+
+    const leafletHTML = `
     <!DOCTYPE html>
     <html>
     <head>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        html, body, #map { height: 100%; margin: 0; padding: 0; }
-      </style>
-      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            html, body, #map { height: 100%; margin: 0; padding: 0; }
+        </style>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     </head>
     <body>
-      <div id="map"></div>
-      <script>
-        const map = L.map('map').setView([33.6469, 73.0428], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-        }).addTo(map);
+        <div id="map"></div>
+        <script>
+            var map = L.map('map').setView([${coordinates[0]?.[0] || 0}, ${coordinates[0]?.[1] || 0}], 17);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
 
-        const geofences = ${JSON.stringify(geofences)};
-        geofences.forEach(geo => {
-          const latlngs = geo.geofence_boundary.map(coord => [coord.latitude, coord.longitude]);
-          const polygon = L.polygon(latlngs, {
-            color: (geo.is_violating ? 'red' :  'green'),
-            weight: 2,
-            fillOpacity: 0.4
-          }).addTo(map);
-          polygon.on('click', () => {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ geo_id: geo.geo_id }));
-          });
-        });
-      </script>
+            var latlngs = ${JSON.stringify(coordinates)};
+            var polygon = L.polygon(latlngs, { color: 'blue', fillOpacity: 0.4 }).addTo(map);
+            map.fitBounds(polygon.getBounds());
+        </script>
     </body>
     </html>
-  `;
-
-    const handleMessage = (event) => {
-        try {
-            const data = JSON.parse(event.nativeEvent.data);
-            const found = geofences.find(g => g.geo_id === data.geo_id);
-            if (found) {
-                setSelectedGeofence(found);
-            }
-        } catch (error) {
-            console.error('Failed to parse message:', error);
-        }
-    };
-
-    const closePopup = () => {
-        setSelectedGeofence(null);
-    };
+    `;
 
     return (
         <View style={styles.container}>
-            {/* Header */}
+            {/* HEADER */}
             <View style={styles.header}>
-                <Text style={styles.headerText}>Assigned Geofences</Text>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Icon name="arrow-back" size={24} color="#fff" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Geofence Details</Text>
+                <View style={{ width: 24 }} /> {/* For spacing */}
             </View>
 
-            {/* Map */}
-            <WebView
-                ref={webviewRef}
-                source={{ html }}
-                style={styles.map}
-                originWhitelist={['*']}
-                javaScriptEnabled={true}
-                onMessage={handleMessage}
-            />
+            {/* FLOATING DROPDOWN */}
+            <View style={styles.dropdownWrapper}>
+                <SelectList
+                    data={geofenceOptions}
+                    setSelected={setSelectedGeofenceId}
+                    placeholder="Select Geofence"
+                    boxStyles={styles.dropdownBox}
+                    dropdownStyles={styles.dropdownList}
+                    search={false}
+                    save="key"
+                    defaultOption={{
+                        key: selectedGeofenceId,
+                        value: selectedGeofence?.geofence_name || '',
+                    }}
 
-            {/* Pop-up Card */}
-            {selectedGeofence && (
-                <View style={styles.popup}>
-                    <Card style={styles.card}>
-                        <Card.Content>
-                            <View style={styles.cardHeader}>
-                                <Text style={styles.title}>{selectedGeofence.geofence_name}</Text>
-                                <TouchableOpacity onPress={closePopup}>
-                                    <Ionicons name="close-circle" size={24} color="#888" />
-                                </TouchableOpacity>
-                            </View>
-                            <Text>Access: {selectedGeofence.access_type}</Text>
-                            <Text>Start Date: {new Date(selectedGeofence.start_date).toLocaleDateString()}</Text>
-                            <Text>End Date: {new Date(selectedGeofence.end_date).toLocaleDateString()}</Text>
-                            <Text>Time: {selectedGeofence.start_time} - {selectedGeofence.end_time}</Text>
-                            <Text>Status: {selectedGeofence.is_active ? 'Active' : 'Inactive'}</Text>
-                            <Text>Violating: {selectedGeofence.is_violating ? 'Yes' : 'No'}</Text>
-                        </Card.Content>
-                    </Card>
+                />
+            </View>
+
+            <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 60 }}>
+                <View style={styles.headerContent}>
+                    <Text style={styles.title}>{String(selectedGeofence?.geofence_name)}</Text>
+                    <Text style={styles.subtitle}>Assigned to {employeeName}</Text>
                 </View>
-            )}
+
+                <View style={styles.mapContainer}>
+                    <WebView
+                        originWhitelist={['*']}
+                        source={{ html: leafletHTML }}
+                        style={{ flex: 1, height: 300 }}
+                        javaScriptEnabled
+                        domStorageEnabled
+                    />
+                </View>
+
+                {/* Time Section */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Icon name="time-outline" size={20} color="#2E86C1" />
+                        <Text style={styles.sectionTitle}>Time Period</Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Start Date:</Text>
+                        <Text style={styles.detailValue}>
+                            {format(parseISO(selectedGeofence.start_date), 'MMMM d, yyyy')}
+                        </Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>End Date:</Text>
+                        <Text style={styles.detailValue}>
+                            {format(parseISO(selectedGeofence.end_date), 'MMMM d, yyyy')}
+                        </Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Daily Time:</Text>
+                        <Text style={styles.detailValue}>
+                            {String(selectedGeofence.start_time)} - {String(selectedGeofence.end_time)}
+                        </Text>
+                    </View>
+                </View>
+
+                {/* Details Section */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Icon name="information-circle-outline" size={20} color="#2E86C1" />
+                        <Text style={styles.sectionTitle}>Details</Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Access Type:</Text>
+                        <Text style={styles.detailValue}>{String(selectedGeofence.access_type)}</Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Current Status:</Text>
+                        <Text
+                            style={[
+                                styles.detailValue,
+                                selectedGeofence.is_active ? styles.activeStatus : styles.inactiveStatus,
+                            ]}
+                        >
+                            {String(selectedGeofence.is_active ? 'Active' : 'Inactive')}
+                        </Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Violation Detected:</Text>
+                        <Text
+                            style={[
+                                styles.detailValue,
+                                selectedGeofence.is_violating ? styles.violationStatus : styles.noViolationStatus,
+                            ]}
+                        >
+                            {String(selectedGeofence.is_violating ? 'Yes' : 'No')}
+                        </Text>
+                    </View>
+                </View>
+            </ScrollView>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff' },
-    header: {
-        backgroundColor: '#4a90e2',
-        padding: 16,
-        paddingTop: 40,
+    container: {
+        flex: 1,
+        backgroundColor: '#f5f5f5',
     },
-    headerText: {
+    header: {
+        height: 56,
+        backgroundColor: '#2E86C1',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingTop: Platform.OS === 'ios' ? 40 : 16,
+    },
+    headerTitle: {
         color: '#fff',
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: '600',
     },
-    map: { flex: 1, margin: 8, borderRadius: 12, overflow: 'hidden' },
-    popup: {
+    dropdownWrapper: {
         position: 'absolute',
-        bottom: 16,
-        width: '100%',
-        paddingHorizontal: 16,
+        top: Platform.OS === 'ios' ? 100 : 70,
+        left: 16,
+        right: 16,
+        zIndex: 999,
     },
-    card: {
-        borderRadius: 16,
-        elevation: 4,
+    dropdownBox: {
+        backgroundColor: '#fff',
+        borderColor: '#ccc',
     },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 8,
+    dropdownList: {
+        zIndex: 1000,
+        backgroundColor: '#fff',
+    },
+    headerContent: {
+        marginBottom: 20,
+        paddingTop: 8,
     },
     title: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 22,
+        fontWeight: '600',
+        color: '#333',
+    },
+    subtitle: {
+        fontSize: 15,
+        color: '#666',
+        marginTop: 4,
+    },
+    mapContainer: {
+        height: 300,
+        borderRadius: 8,
+        overflow: 'hidden',
+        marginBottom: 20,
+    },
+    section: {
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 16,
+        marginBottom: 16,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    sectionTitle: {
+        fontSize: 17,
+        fontWeight: '500',
+        color: '#2E86C1',
+        marginLeft: 8,
+    },
+    detailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+    detailLabel: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#555',
+    },
+    detailValue: {
+        fontSize: 16,
+        color: '#333',
+    },
+    activeStatus: {
+        color: 'green',
+    },
+    inactiveStatus: {
+        color: 'gray',
+    },
+    violationStatus: {
+        color: 'red',
+    },
+    noViolationStatus: {
+        color: 'green',
     },
 });
 
-export default AssignedGeofenceScreen;
+export default AssignedGeofenceDetailsScreen;

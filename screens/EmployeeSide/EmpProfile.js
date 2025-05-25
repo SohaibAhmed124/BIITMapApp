@@ -11,7 +11,7 @@ import { useEmployeeContext } from '../Context/EmployeeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import EmployeeService from '../Api/EmployeeApi';
 import { BASE_URL } from '../Api/BaseConfig';
-import Header from './EmpHeader';
+
 
 const EmployeeProfileScreen = ({ route, navigation }) => {
   const [profile, setProfile] = useState(null);
@@ -51,7 +51,6 @@ const EmployeeProfileScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Employee Profile"/>
 
       <ScrollView contentContainerStyle={styles.content}>
         <Image
