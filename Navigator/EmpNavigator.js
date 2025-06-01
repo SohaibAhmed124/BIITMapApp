@@ -1,10 +1,10 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import EmployeeProfileScreen from '../EmployeeSide/EmpProfile';
-import EmpAssignedVehicleScreen from '../EmployeeSide/EmpAssignedVehicle';
-import EmpAssignedGeofenceScreen from '../EmployeeSide/EmpAssignedGeofence';
-import EmpViolation from '../EmployeeSide/EmpViolation';
-import EmpDashboardScreen from '../EmployeeSide/EmpDashboard';
+import EmpAssignedVehicleScreen from '../screens/EmployeeSide/EmpAssignedVehicle';
+import EmpAssignedGeofenceScreen from '../screens/EmployeeSide/EmpAssignedGeofence';
+import EmpViolation from '../screens/EmployeeSide/EmpViolation';
+import EmpDashboardScreen from '../screens/EmployeeSide/EmpDashboard';
 const EmpStack = createNativeStackNavigator();
 
 const EmpNavigator = () => {

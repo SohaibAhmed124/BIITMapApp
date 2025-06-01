@@ -8,7 +8,7 @@ import {
   Pressable
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons";
-import { API_BASE_URL } from '../../Api/BaseConfig';
+import { BASE_URL } from '../../../Api/BaseConfig';
 
 const UserDetail = ({ route, navigation }) => {
   const { userData } = route.params;
@@ -27,7 +27,7 @@ const UserDetail = ({ route, navigation }) => {
         <Image
           source={{
             uri: user.image
-              ? `${API_BASE_URL}${user.image}`
+              ? `${BASE_URL}${user.image}`
               : 'https://logodownload.org/wp-content/uploads/2019/07/udemy-logo-5.png'
           }}
           style={styles.profileImage}

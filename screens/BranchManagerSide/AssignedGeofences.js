@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Searchbar, Chip } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../Api/ManagerApi'; // Assuming ManagerApi is correctly set up
+import api from '../../Api/ManagerApi'; // Assuming ManagerApi is correctly set up
 import { parseISO, isBefore, isAfter, isWithinInterval } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native'; // Import useFocusEffect
 

@@ -2,12 +2,12 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import EmpNavigator from './screens/Navigator/EmpNavigator';
-import ManagerNavigator from './screens/Navigator/ManagerNavigator';
-import AdminNavigator from './screens/Navigator/AdminNavigator';
+import EmpNavigator from './Navigator/EmpNavigator';
+import ManagerNavigator from './Navigator/ManagerNavigator';
+import AdminNavigator from './Navigator/AdminNavigator';
 import LoginScreen from "./screens/LoginScreen.js";
 
-import { EmployeeProvider } from './screens/Context/EmployeeContext';
+import { EmployeeProvider } from './Context/EmployeeContext';
 
 import FindRouteScreen from './screens/MapAdminSide/getRoute';
 import GetRouteScreen from './screens/MapAdminSide/getRouteGH'
@@ -38,11 +38,12 @@ function RootStack() {
 
 export default function App() {
   return (
-    <EmployeeProvider>
-      <NavigationContainer>
-        <RootStack />
-      </NavigationContainer>
-    </EmployeeProvider>
+    // <EmployeeProvider>
+    //   <NavigationContainer>
+    //     <RootStack />
+    //   </NavigationContainer>
+    // </EmployeeProvider>
     // <EmployeeMovementSimulatorScreen/>
+    <GetRouteScreen/>
   );
 }

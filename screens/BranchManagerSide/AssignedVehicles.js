@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
-import ManagerApi from '../Api/ManagerApi';
-import AdminService from '../Api/AdminApiService';
-import { BASE_URL } from '../Api/BaseConfig';
+import ManagerApi from '../../Api/ManagerApi';
+import AdminService from '../../Api/AdminApiService';
+import { BASE_URL } from '../../Api/BaseConfig';
 
 const AssignedVehicleListScreen = ({ navigation, route }) => {
   const [assignedVehicles, setAssignedVehicles] = useState([]);

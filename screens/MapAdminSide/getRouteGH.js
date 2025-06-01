@@ -5,7 +5,7 @@ import { Button } from "react-native-paper";
 import axios from "axios";
 import polyline from '@mapbox/polyline';
 
-const GRAPH_HOPPER_HOST = "http://192.168.1.11:8989"; // Your GraphHopper API URL
+const GRAPH_HOPPER_HOST = "http://192.168.1.6:8989"; // Your GraphHopper API URL
 
 const FindRouteScreen = () => {
   const webViewRef = useRef(null);

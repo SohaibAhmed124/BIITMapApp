@@ -10,8 +10,8 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/Ionicons';
-import api from '../Api/ManagerApi';
-import AdminService from '../Api/AdminApiService';
+import api from '../../Api/ManagerApi';
+import AdminService from '../../Api/AdminApiService';
 
 const AssignVehicleScreen = ({ navigation }) => {
   const [employees, setEmployees] = useState([]);

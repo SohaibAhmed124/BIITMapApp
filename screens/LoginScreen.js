@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Text, TextInput, Button } from "react-native-paper";
 import Icon from "react-native-vector-icons/Ionicons";
-import login from "../screens/Api/AuthApi"; // adjust path if needed
+import login from "../Api/AuthApi"; // adjust path if needed
 import Storage from '../utils/localStorage';
 import { useNavigation } from "@react-navigation/native";
 

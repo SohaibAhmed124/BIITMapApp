@@ -10,7 +10,7 @@ import {
   StyleSheet,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
-import GeofenceService from "../../Api/GeofenceApi";
+import GeofenceService from "../../../Api/GeofenceApi";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 const GeofenceList = () => {

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import AdminService from '../../Api/AdminApiService';
+import AdminService from '../../../Api/AdminApiService';
 
 
 const BranchList = () => {

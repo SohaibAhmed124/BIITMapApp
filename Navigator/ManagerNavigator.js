@@ -1,14 +1,14 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import AssignGeofenceScreen from '../BranchManagerSide/AssignGeofence';
-import AssignedGeofenceListScreen from '../BranchManagerSide/AssignedGeofences';
-import AssignedGeofenceDetailsScreen from '../BranchManagerSide/AssignedGeofenceDetails';
-import AssignVehicleScreen from '../BranchManagerSide/AssignVehicle';
-import AssignedVehicleListScreen from '../BranchManagerSide/AssignedVehicles';
-import AssignedVehicleDetailsScreen from '../BranchManagerSide/AssignedVehicleDetails';
-import TrackingScreen from '../BranchManagerSide/TrackingEmployee';
-import ViolationsScreen from '../BranchManagerSide/ViewViolation';
-import ManagerDashboard from '../BranchManagerSide/ManagerDashboard';
+import AssignGeofenceScreen from '../screens/BranchManagerSide/AssignGeofence';
+import AssignedGeofenceListScreen from '../screens/BranchManagerSide/AssignedGeofences';
+import AssignedGeofenceDetailsScreen from '../screens/BranchManagerSide/AssignedGeofenceDetails';
+import AssignVehicleScreen from '../screens/BranchManagerSide/AssignVehicle';
+import AssignedVehicleListScreen from '../screens/BranchManagerSide/AssignedVehicles';
+import AssignedVehicleDetailsScreen from '../screens/BranchManagerSide/AssignedVehicleDetails';
+import TrackingScreen from '../screens/BranchManagerSide/TrackingEmployee';
+import ViolationsScreen from '../screens/BranchManagerSide/ViewViolation';
+import ManagerDashboard from '../screens/BranchManagerSide/ManagerDashboard';
 
 
 const ManagerStack = createNativeStackNavigator();

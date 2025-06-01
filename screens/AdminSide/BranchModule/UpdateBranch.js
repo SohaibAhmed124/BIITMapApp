@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, Alert, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import AdminService from '../../Api/AdminApiService';
+import AdminService from '../../../Api/AdminApiService';
 
 const UpdateBranch = ({ route, navigation }) => {
   const { branchId, bData } = route.params;

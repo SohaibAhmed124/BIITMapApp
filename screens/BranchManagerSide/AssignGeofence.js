@@ -10,8 +10,8 @@ import {
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { SelectList, MultipleSelectList } from "react-native-dropdown-select-list";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import api from "../Api/ManagerApi";
-import GeofenceService from "../Api/GeofenceApi";
+import api from "../../Api/ManagerApi";
+import GeofenceService from "../../Api/GeofenceApi";
 
 const AssignGeofenceScreen = ({ navigation, route }) => {
   const {managerId} = route.params;

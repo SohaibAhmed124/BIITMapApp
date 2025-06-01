@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import EmployeeService from '../Api/EmployeeApi';
-import ManagerApi from '../Api/ManagerApi';
-import { BASE_URL } from '../Api/BaseConfig';
+import EmployeeService from '../../Api/EmployeeApi';
+import ManagerApi from '../../Api/ManagerApi';
+import { BASE_URL } from '../../Api/BaseConfig';
 
 const EmpAssignedVehicleScreen = ({ route, navigation }) => {
   const [vehicle, setVehicle] = useState(null);
@@ -109,10 +109,10 @@ const EmpAssignedVehicleScreen = ({ route, navigation }) => {
           <Text style={styles.sectionTitle}>Vehicle Details</Text>
           {renderDetailRow('information-circle-outline', 'Model:', vehicle.model)}
           {renderDetailRow('calendar-outline', 'Year:', vehicle.year)}
-          {renderDetailRow('card-outline', 'Registration #:', vehicle.registration_number)}
-          {renderDetailRow('color-palette-outline', 'Color:', vehicle.color)}
-          {renderDetailRow('flame-outline', 'Fuel Type:', vehicle.fuel_type)}
-          {renderDetailRow('speedometer-outline', 'Mileage:', vehicle.mileage)}
+          {renderDetailRow('card-outline', 'Registration #:', 'ISB-423')}
+          {renderDetailRow('color-palette-outline', 'Color:', 'White')}
+          {renderDetailRow('flame-outline', 'Fuel Type:', 'Petrol')}
+          {renderDetailRow('speedometer-outline', 'Mileage:', '20 km/L')}
         </View>
 
         {/* Assignment Info */}

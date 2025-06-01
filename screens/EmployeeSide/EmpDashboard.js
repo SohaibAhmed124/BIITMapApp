@@ -10,10 +10,10 @@ import {
 import { Text, Card } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import DashboardCard from "../CustomComponents/DashboardCard";
-import EmployeeService from "../Api/EmployeeApi";
+import EmployeeService from "../../Api/EmployeeApi";
 import Storage from '../../utils/localStorage'
 import { logout } from "../../utils/auth";
-import { BASE_URL } from "../Api/BaseConfig";
+import { BASE_URL } from "../../Api/BaseConfig";
 
 const EmployeeDashboard = ({ navigation }) => {
   const [profile, setProfile] = useState(null);

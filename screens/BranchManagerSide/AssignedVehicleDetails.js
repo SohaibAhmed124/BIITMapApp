@@ -9,7 +9,7 @@ import {
   TouchableOpacity
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { BASE_URL } from '../Api/BaseConfig';
+import { BASE_URL } from '../../Api/BaseConfig';
 
 const AssignedVehicleDetailsScreen = ({ route }) => {
   const { vehicle } = route.params;

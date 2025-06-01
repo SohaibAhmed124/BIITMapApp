@@ -7,7 +7,7 @@ import {
   Pressable
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons";
-import { API_BASE_URL } from '../../Api/BaseConfig';
+import { BASE_URL } from '../../../Api/BaseConfig';
 
 const VehicleDetail = ({ navigation, route }) => {
   const { data } = route.params; // Retrieve vehicleId from params
@@ -36,7 +36,7 @@ const VehicleDetail = ({ navigation, route }) => {
         <Text style={styles.vehicleModel}>{vehicle.model}</Text>
         <Image
           source={{  uri: vehicle.image
-                        ? `${API_BASE_URL}${vehicle.image}` 
+                        ? `${BASE_URL}${vehicle.image}` 
                         : 'https://via.placeholder.com/150' 
                   }} // Placeholder if image is unavailable
           style={{height:150, width:250}}

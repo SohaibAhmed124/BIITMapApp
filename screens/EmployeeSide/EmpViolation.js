@@ -18,8 +18,8 @@ import {
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from 'react-native-modal-datetime-picker';
-import api from '../Api/ManagerApi';
-import GeofenceService from '../Api/GeofenceApi';
+import api from '../../Api/ManagerApi';
+import GeofenceService from '../../Api/GeofenceApi';
 import dayjs from 'dayjs';
 
 const EmpViolation = ({ navigation, route }) => {

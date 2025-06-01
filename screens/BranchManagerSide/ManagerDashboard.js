@@ -3,10 +3,10 @@ import { View, StyleSheet, TouchableOpacity, Image, FlatList, ActivityIndicator 
 import { Text, Card, IconButton } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { logout } from "../../utils/auth";
-import EmployeeService from "../Api/EmployeeApi";
+import EmployeeService from "../../Api/EmployeeApi";
 import DashboardCard from "../CustomComponents/DashboardCard";
 import Storage from '../../utils/localStorage';
-import { BASE_URL } from "../Api/BaseConfig";
+import { BASE_URL } from "../../Api/BaseConfig";
 
 const ManagerDashboard = ({ navigation }) => {
   const [profile, setProfile] = useState(null);

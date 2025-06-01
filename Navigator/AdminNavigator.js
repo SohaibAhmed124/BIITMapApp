@@ -4,25 +4,25 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import AdminDashboard from '../AdminSide/AdminDashboard';
 
-import AddEmployee from '../AdminSide/EmployeeModule/AddEmployee';
-import EmployeeDetail from '../AdminSide/EmployeeModule/EmployeeDetail'
-import UpdateEmployee from '../AdminSide/EmployeeModule/UpdateEmployee';
-import EmployeeList from '../AdminSide/EmployeeModule/EmployeeList';
+import AddEmployee from '../screens/AdminSide/EmployeeModule/AddEmployee';
+import EmployeeDetail from '../screens/AdminSide/EmployeeModule/EmployeeDetail'
+import UpdateEmployee from '../screens/AdminSide/EmployeeModule/UpdateEmployee';
+import EmployeeList from '../screens/AdminSide/EmployeeModule/EmployeeList';
 
-import VehicleDetail from '../AdminSide/VehicleModule/VehicleDetail';
-import VehicleList from '../AdminSide/VehicleModule/VehicleList';
-import AddVehicle from '../AdminSide/VehicleModule/AddVehicle';
-import UpdateVehicle from '../AdminSide/VehicleModule/UpdateVehicle';
+import VehicleDetail from '../screens/AdminSide/VehicleModule/VehicleDetail';
+import VehicleList from '../screens/AdminSide/VehicleModule/VehicleList';
+import AddVehicle from '../screens/AdminSide/VehicleModule/AddVehicle';
+import UpdateVehicle from '../screens/AdminSide/VehicleModule/UpdateVehicle';
 
-import AddBranch from '../AdminSide/BranchModule/AddBranch';
-import UpdateBranch from '../AdminSide/BranchModule/UpdateBranch';
-import BranchDetail from '../AdminSide/BranchModule/BranchDetail';
-import BranchList from '../AdminSide/BranchModule/BranchList';
+import AddBranch from '../screens/AdminSide/BranchModule/AddBranch';
+import UpdateBranch from '../screens/AdminSide/BranchModule/UpdateBranch';
+import BranchDetail from '../screens/AdminSide/BranchModule/BranchDetail';
+import BranchList from '../screens/AdminSide/BranchModule/BranchList';
 
-import CreateGeofence from '../AdminSide/GeofenceModule/CreateGeofence';
-import GeofenceList from '../AdminSide/GeofenceModule/GeofenceList';
-import GeofenceDetail from '../AdminSide/GeofenceModule/GeofenceDetail';
-import AllGeofences from '../AdminSide/GeofenceModule/AllGeofence';
+import CreateGeofence from '../screens/AdminSide/GeofenceModule/CreateGeofence';
+import GeofenceList from '../screens/AdminSide/GeofenceModule/GeofenceList';
+import GeofenceDetail from '../screens/AdminSide/GeofenceModule/GeofenceDetail';
+import AllGeofences from '../screens/AdminSide/GeofenceModule/AllGeofence';
 
 
 const Stack = createNativeStackNavigator();
