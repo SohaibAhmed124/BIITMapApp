@@ -59,7 +59,6 @@ const ViolationsScreen = ({ navigation, route }) => {
           };
         })
         : [];
-      console.log(data);
       setViolations(data);
     } catch (err) {
       console.error(err);

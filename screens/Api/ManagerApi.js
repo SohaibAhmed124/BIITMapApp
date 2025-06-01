@@ -67,7 +67,14 @@ const ManagerApi = {
   assignVehicleToEmployee: async (employeeId, vehicleId) => {
     return apiClient.post("/manager/assign-vehicle", { employeeId, vehicleId });
   },
-
+  /**
+   * Get all location points of an employee under a manager
+   * @param {number|string} employeeId - The ID of the employee
+   * @returns {Promise<Object[]>} - Array of location entries
+   */
+  getAllEmployeeLocations: async (employeeId) => {
+    return apiClient.get(`/manager/${employeeId}/employees/Alllocations`);
+  },
   /**
    * Get single employee's location
    * @param {number} employeeId - Employee ID

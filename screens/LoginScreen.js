@@ -97,11 +97,6 @@ const LoginScreen = () => {
           }
           theme={inputTheme}
         />
-
-        <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-
         <Button
           mode="contained"
           style={styles.loginButton}

@@ -41,10 +41,8 @@ export default function App() {
     <EmployeeProvider>
       <NavigationContainer>
         <RootStack />
-        {/* <ManagerNavigator/> */}
-        {/* <EmpNavigator /> */}
       </NavigationContainer>
     </EmployeeProvider>
-
+    // <EmployeeMovementSimulatorScreen/>
   );
 }

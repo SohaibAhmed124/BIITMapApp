@@ -7,7 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { Text } from "react-native-paper";
+import { Text, Card } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import DashboardCard from "../CustomComponents/DashboardCard";
 import EmployeeService from "../Api/EmployeeApi";
@@ -69,26 +69,37 @@ const EmployeeDashboard = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="arrow-left" size={26} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Dashboard</Text>
+        <Text style={styles.headerText}>Employee Dashboard</Text>
       </View>
 
       {/* Profile Section */}
-      <View style={styles.profileContainer}>
-        <Image
-          source={
-            profile?.image
-              ? { uri: `${BASE_URL}${profile.image}` }
-              : require("../../assets/default_vehicle.png") // Fallback image
-          }
-          style={styles.profileImage}
-        />
-        <Text style={styles.greeting}>Hello, {profile.first_name} 👋</Text>
-        <Text style={styles.profileDetail}>{profile.city}, {profile.address}</Text>
-        <Text style={styles.profileDetail}>📞 {profile.phone}</Text>
-      </View>
+      <Card style={styles.profileCard}>
+        <Card.Content style={styles.profileContent}>
+          <Image
+            source={
+              profile?.image
+                ? { uri: `${BASE_URL}${profile.image}` }
+                : require("../../assets/default_vehicle.png")
+            }
+            style={styles.profileImage}
+          />
+          <View style={styles.profileInfo}>
+            <Text style={styles.greeting}>Hello, {profile.first_name}</Text>
+            <View style={styles.infoRow}>
+              <Icon name="email" size={18} color="#498FEB" style={styles.icon} />
+              <Text style={styles.profileDetail}>{profile.email}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Icon name="city" size={18} color="#498FEB" style={styles.icon} />
+              <Text style={styles.profileDetail}>{profile.city}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Icon name="phone" size={18} color="#498FEB" style={styles.icon} />
+              <Text style={styles.profileDetail}>{profile.phone}</Text>
+            </View>
+          </View>
+        </Card.Content>
+      </Card>
 
       {/* Geofence & Vehicle Stats */}
       <View style={styles.statsContainer}>
@@ -164,26 +175,43 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginLeft: 15,
   },
-  profileContainer: {
-    alignItems: "center",
+  profileCard: {
     marginTop: 20,
+    elevation: 2,
+    borderRadius: 10,
+    backgroundColor: "#EAF1FB",
+  },
+  profileContent: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   profileImage: {
     width: 80,
     height: 80,
     borderRadius: 40,
     backgroundColor: "#ccc",
+    marginRight: 15,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileDetail: {
+    fontSize: 14,
+    color: "#444",
+  },
+  icon: {
+    marginRight: 6,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
   },
   greeting: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#333",
     marginTop: 10,
-  },
-  profileDetail: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 2,
   },
   statsContainer: {
     flexDirection: "row",
