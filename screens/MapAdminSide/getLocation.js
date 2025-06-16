@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text, StyleSheet, Modal, Image, TouchableOpacity, TextInput, FlatList } from 'react-native';
 import WebView from 'react-native-webview';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import mapLocationApi from '../Api/MapLocationApi';
+import mapLocationApi from '../../Api/MapLocationApi';
 
 const GetLocationScreen = () => {
   const [locations, setLocations] = useState([]);

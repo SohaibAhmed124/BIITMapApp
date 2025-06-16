@@ -7,10 +7,10 @@ import {
   ScrollView,
   ActivityIndicator
 } from 'react-native';
-import { useEmployeeContext } from '../Context/EmployeeContext';
+import { useEmployeeContext } from '../../Context/EmployeeContext';
 import Icon from 'react-native-vector-icons/Ionicons';
-import EmployeeService from '../Api/EmployeeApi';
-import { BASE_URL } from '../Api/BaseConfig';
+import EmployeeService from '../../Api/EmployeeApi';
+import { BASE_URL } from '../../Api/BaseConfig';
 
 
 const EmployeeProfileScreen = ({ route, navigation }) => {

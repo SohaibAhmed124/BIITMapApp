@@ -2,22 +2,25 @@ import React from "react";
 import { View, StyleSheet, TouchableOpacity, Image, FlatList } from "react-native";
 import { Text } from "react-native-paper";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { useNavigation } from "@react-navigation/native";
 import DashboardCard from "../CustomComponents/DashboardCard";
 import { logout } from "../../utils/auth";
 
-const AdminDashboard = ({navigation}) => {
-  const userName = "Admin";
-
-  const menuItems = [
-    { icon: "account-plus", title: "Employee", screen: "EmployeeModule" },
-    { icon: "car", title: "Vehicle", screen: "VehicleModule" },
-    { icon: "map-marker-radius", title: "GeoFence", screen: "GeofenceModule" },
-    { icon: "office-building", title: "Branch", screen: "BranchModule" },
-  ];
+const MapAdminDashboard = () => {
+  const navigation = useNavigation();
+  const userName = "MapAdmin";
 
   const handleLogout = async () => {
     logout(navigation);
-  }
+  };
+
+  const menuItems = [
+    { icon: "account-plus", title: "Employee", screen: "AddLocation" },
+    { icon: "car", title: "Vehicle", screen: "GetLocation" },
+    { icon: "map-marker-radius", title: "GeoFence", screen: "CreateRoute" },
+    { icon: "office-building", title: "Branch", screen: "FindRoute" },
+    { icon: "office-building", title: "Branch", screen: "EmpMovSimulator" },
+  ];
 
   return (
     <View style={styles.container}>
@@ -32,7 +35,7 @@ const AdminDashboard = ({navigation}) => {
           source={{ uri: "https://logodownload.org/wp-content/uploads/2019/07/udemy-logo-5.png" }}
           style={styles.profileImage}
         />
-        <Text style={styles.greeting}>Hello, {userName} 👋</Text>
+        <Text style={styles.greeting}>Hello, {userName}</Text>
       </View>
 
       {/* Grid List */}
@@ -108,4 +111,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AdminDashboard;
+export default MapAdminDashboard;

@@ -1,7 +1,8 @@
 // api/mapLocationApi.js
 import axios from 'axios';
+import { BASE_URL } from './BaseConfig';
 
-const API_BASE_URL = 'http://192.168.1.11:3000/api/location';
+const API_BASE_URL = `${BASE_URL}/api/location`;
 
 const mapLocationApi = {
   // Add a new location
@@ -28,6 +29,16 @@ const mapLocationApi = {
   getLocationById: async (id) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/map-locations/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  },
+
+    // Get a map location by name
+  getMapLocation: async (name) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/search-location?location=${name}`);
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error.message;

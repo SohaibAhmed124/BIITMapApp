@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity, Modal, Image } from 'react-native';
 import WebView from 'react-native-webview';
 import { launchImageLibrary } from 'react-native-image-picker';
-import mapLocationApi from '../Api/MapLocationApi';
+import mapLocationApi from '../../Api/MapLocationApi';
 
 const AddLocationScreen = ({ navigation }) => {
   const [name, setName] = useState('');

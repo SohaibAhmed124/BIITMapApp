@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import EmpNavigator from './Navigator/EmpNavigator';
 import ManagerNavigator from './Navigator/ManagerNavigator';
 import AdminNavigator from './Navigator/AdminNavigator';
+import MapNavigator from './Navigator/MapAdminNavigator.js';
 import LoginScreen from "./screens/LoginScreen.js";
 
 import { EmployeeProvider } from './Context/EmployeeContext';
@@ -28,9 +29,10 @@ function RootStack() {
   return (
     <Stack.Navigator initialRouteName='Login' screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="AdminView" component={AdminNavigator} />
+      <Stack.Screen name="AdminSide" component={AdminNavigator} />
       <Stack.Screen name="ManagerSide" component={ManagerNavigator} />
       <Stack.Screen name="EmpSide" component={EmpNavigator}/>
+      <Stack.Screen name="MapAdminSide" component={MapNavigator}/>
     </Stack.Navigator>
   );
 }
@@ -38,12 +40,12 @@ function RootStack() {
 
 export default function App() {
   return (
-    // <EmployeeProvider>
-    //   <NavigationContainer>
-    //     <RootStack />
-    //   </NavigationContainer>
-    // </EmployeeProvider>
+    <EmployeeProvider>
+      <NavigationContainer>
+        <RootStack />
+      </NavigationContainer>
+    </EmployeeProvider>
     // <EmployeeMovementSimulatorScreen/>
-    <GetRouteScreen/>
+    // <GetRouteScreen/>
   );
 }

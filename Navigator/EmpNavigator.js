@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import EmployeeProfileScreen from '../EmployeeSide/EmpProfile';
+import EmployeeProfileScreen from '../screens/EmployeeSide/EmpProfile';
 import EmpAssignedVehicleScreen from '../screens/EmployeeSide/EmpAssignedVehicle';
 import EmpAssignedGeofenceScreen from '../screens/EmployeeSide/EmpAssignedGeofence';
 import EmpViolation from '../screens/EmployeeSide/EmpViolation';

@@ -46,7 +46,8 @@ const EmpViolation = ({ navigation, route }) => {
                 api.getViolationsByEmployee(employeeId),
                 GeofenceService.getAllGeofences(),
             ]);
-
+            
+            console.log(ViolationRes);
             const geofenceMap = Array.isArray(geofenceRes)
                 ? geofenceRes.reduce((acc, gf) => {
                     acc[gf.geo_id] = gf;
@@ -64,7 +65,6 @@ const EmpViolation = ({ navigation, route }) => {
                     };
                 })
                 : [];
-            console.log(data);
             setViolations(data);
         } catch (err) {
             console.error(err);
@@ -91,7 +91,7 @@ const EmpViolation = ({ navigation, route }) => {
             case 'exit':
                 return theme.colors.error;
             case 'entry':
-                return theme.colors.tertiary || '#fbc02d';
+                return theme.colors.tertiary || '#03fc35';
             default:
                 return theme.colors.backdrop;
         }

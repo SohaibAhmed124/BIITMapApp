@@ -2,7 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 
-import AdminDashboard from '../AdminSide/AdminDashboard';
+import AdminDashboard from '../screens/AdminSide/AdminDashboard';
 
 import AddEmployee from '../screens/AdminSide/EmployeeModule/AddEmployee';
 import EmployeeDetail from '../screens/AdminSide/EmployeeModule/EmployeeDetail'
@@ -83,7 +83,7 @@ const GeofenceNavigator = () => {
 
 function AdminNavigator() {
   return (
-    <Stack.Navigator initialRouteName='ManagerSide' screenOptions={{headerShown:false}}>
+    <Stack.Navigator initialRouteName='AdminView' screenOptions={{headerShown:false}}>
       <Stack.Screen name="AdminView" component={AdminDashboard}/>
       <Stack.Screen name="EmployeeModule" component={EmployeeNavigator} />
       <Stack.Screen name="BranchModule" component={BranchNavigator} />

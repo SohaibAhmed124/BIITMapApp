@@ -39,8 +39,11 @@ const LoginScreen = () => {
       console.log(user);
 
       switch (data.user.role) {
+        case "MapAdmin":
+          navigation.replace("MapAdminSide");
+          break;
         case "Admin":
-          navigation.replace("AdminView");
+          navigation.replace("AdminSide");
           break;
         case "Manager":
           navigation.replace("ManagerSide");
