@@ -1,3 +1,4 @@
+export const GeofenceMap = (MAP_URL) => `
 <!DOCTYPE html>
 <html>
 
@@ -26,7 +27,7 @@
     const map = L.map('map').setView([33.6468, 73.0376], 13); // Default center and zoom level
 
     // Add a tile layer (e.g., OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.tileLayer('${MAP_URL}').addTo(map);
 
     // Variables to store map state
     let drawnBoundary = [];
@@ -87,11 +88,11 @@
         const coordinates = geofence.boundary.map(point => [point.latitude, point.longitude]);
 
         if (coordinates.length > 0) {
-          const polygon = L.polygon(coordinates, { color: 'green' });
-          polygon.bindPopup(`<b>${geofence.name}</b>`);
+          const polygon = L.polygon(coordinates, { color: '#348ceb' });
+          polygon.bindPopup('<b>'+geofence.name+'</b>');
           window.geofenceLayerGroup.addLayer(polygon);  // ✅ Adds to LayerGroup
         } else {
-          console.warn(`Geofence "${geofence.name}" has no valid coordinates.`);
+          console.warn('Geofence' + geofence.name + 'has no valid coordinates.');
         }
       });
 
@@ -145,7 +146,7 @@
         }
         tempPolyline = L.polyline(
           drawnBoundary.map(point => [point.latitude, point.longitude]),
-          { color: 'rgb(250, 117, 72)', dashArray: '7, 10', weight: 2 }
+          { color: '#348ceb', dashArray: '7, 10', weight: 2 }
         ).addTo(map);
 
         // Send the updated boundary to React Native
@@ -166,8 +167,7 @@
 
       // Draw the new geofence polygon
       map.geofenceLayer = L.polygon(coordinates, {
-        color: "green",
-        fillColor: "#42f548",
+        color: "#348ceb",
         fillOpacity: 0.5
       }).addTo(map);
 
@@ -185,3 +185,4 @@
 </body>
 
 </html>
+`;

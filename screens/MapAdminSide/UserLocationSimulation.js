@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import AdminService from '../../Api/AdminApiService';
 import ManagerApi from '../../Api/ManagerApi';
 import LocationApi from '../../Api/LocationApi';
+import { MAP_URL } from '../../Api/BaseConfig';
 
 const EmployeeMovementSimulatorScreen = ({ navigation }) => {
   const [employees, setEmployees] = useState([]);
@@ -81,7 +82,7 @@ const EmployeeMovementSimulatorScreen = ({ navigation }) => {
     }
   };
 
-  const generateHTML = () => {
+  const generateHTML = (MAP_URL) => {
     return `
       <!DOCTYPE html>
       <html>
@@ -92,6 +93,7 @@ const EmployeeMovementSimulatorScreen = ({ navigation }) => {
         <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
         <style>
+          body { margin: 0; padding: 0; }
           #map { height: 100vh; width: 100%; }
         </style>
       </head>
@@ -100,9 +102,7 @@ const EmployeeMovementSimulatorScreen = ({ navigation }) => {
         <script>
           const map = L.map('map').setView([33.6844, 73.0479], 13); // Default Islamabad center
 
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-          }).addTo(map);
+          L.tileLayer('${MAP_URL}').addTo(map);
 
           let marker = null;
           let polygons = [];
@@ -200,7 +200,7 @@ const EmployeeMovementSimulatorScreen = ({ navigation }) => {
           <View style={styles.mapContainer}>
             <WebView
               ref={webviewRef}
-              source={{ html: generateHTML() }}
+              source={{ html: generateHTML(MAP_URL) }}
               onMessage={onWebViewMessage}
               javaScriptEnabled
               domStorageEnabled

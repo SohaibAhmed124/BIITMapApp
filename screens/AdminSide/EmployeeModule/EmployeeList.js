@@ -30,10 +30,10 @@ const EmployeeList = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await AdminApiService.getAllEmployees();
-      setEmployees(response.employees);
-      setFilteredEmployees(response.employees);
-      console.log();
+      const response = await AdminApiService.getAllUsers();
+      setEmployees(response.users);
+      setFilteredEmployees(response.users);
+      console.log(response.users);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching employees:", error.message);
@@ -72,9 +72,9 @@ const EmployeeList = () => {
     setShowPopup(false);
     if (selectedUser) {
       try {
-        await AdminApiService.deactivateEmployee(selectedUser);
-        setEmployees((prev) => prev.filter((b) => b.employee_id !== selectedUser));
-        setFilteredEmployees((prev) => prev.filter((b) => b.employee_id !== selectedUser));
+        await AdminApiService.deactivateUser(selectedUser);
+        setEmployees((prev) => prev.filter((b) => b.user_id!== selectedUser));
+        setFilteredEmployees((prev) => prev.filter((b) => b.user_id !== selectedUser));
         console.log('Employee deleted successfully');
       } catch (error) {
         console.error('Error deleting Employee:', error.message);
@@ -117,7 +117,7 @@ const EmployeeList = () => {
             </View>
             <Text style={styles.employeeName}>{item.first_name} {item.last_name}</Text>
             <Icon name="pencil" size={24} color="#2E86C1" style={styles.icon} onPress={() => navigation.navigate("UpdateEmployee", { userId: item.employee_id, userData: item })} />
-            <Icon name="trash" size={24} color="#D32F2F" style={styles.icon} onPress={() => {handleDelete(item.employee_id)}} />
+            <Icon name="trash" size={24} color="#D32F2F" style={styles.icon} onPress={() => {handleDelete(item.user_id)}} />
           </Pressable>
         )}
         removeClippedSubviews={false}
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F7FC",
-    padding: 15,
+    padding: 10,
   },
   header: {
     flexDirection: "row",

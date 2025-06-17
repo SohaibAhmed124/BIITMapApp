@@ -3,6 +3,8 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { MAP_URL } from "../../../Api/BaseConfig";
+import { GeofenceMap } from "../../CustomComponents/GeofenceMap";
 
 const GeofenceDetail = () => {
   const route = useRoute();
@@ -23,7 +25,7 @@ const GeofenceDetail = () => {
       {/* Map View */}
       <WebView
         ref={webViewRef}
-        source={require("../../../assets/map.html")}
+        source={{html:GeofenceMap(MAP_URL)}}
         style={styles.mapView}
         javaScriptEnabled={true}
         domStorageEnabled={true}

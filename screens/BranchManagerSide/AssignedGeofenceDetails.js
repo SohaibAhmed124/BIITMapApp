@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { format, parseISO } from 'date-fns';
 import { WebView } from 'react-native-webview';
+import { MAP_URL } from '../../Api/BaseConfig';
 
 const AssignedGeofenceDetailsScreen = ({ route }) => {
   const { geofence, employee } = route.params;
@@ -16,7 +17,7 @@ const AssignedGeofenceDetailsScreen = ({ route }) => {
     [24.8614, 67.0099] // Closed polygon
   ];
 
-  const leafletHTML = `
+  const AssignGeofenceMap = (MAP_URL) => `
     <!DOCTYPE html>
     <html>
     <head>
@@ -32,7 +33,7 @@ const AssignedGeofenceDetailsScreen = ({ route }) => {
       <div id="map"></div>
       <script>
         var map = L.map('map').setView([${coordinates[0][0]}, ${coordinates[0][1]}], 17);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer('${MAP_URL}', {
           attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
@@ -54,7 +55,7 @@ const AssignedGeofenceDetailsScreen = ({ route }) => {
       <View style={styles.mapContainer}>
         <WebView
           originWhitelist={['*']}
-          source={{ html: leafletHTML }}
+          source={{ html: AssignGeofenceMap(MAP_URL) }}
           style={{ flex: 1, height: 300 }}
           javaScriptEnabled={true}
           domStorageEnabled={true}

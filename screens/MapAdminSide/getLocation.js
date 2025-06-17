@@ -3,6 +3,7 @@ import { View, ActivityIndicator, Text, StyleSheet, Modal, Image, TouchableOpaci
 import WebView from 'react-native-webview';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import mapLocationApi from '../../Api/MapLocationApi';
+import { MAP_URL } from '../../Api/BaseConfig';
 
 const GetLocationScreen = () => {
   const [locations, setLocations] = useState([]);
@@ -44,7 +45,7 @@ const GetLocationScreen = () => {
     mapRef.injectJavaScript(`map.setView([${location.latitude}, ${location.longitude}], 18);`);
   };
 
-  const generateMapHtml = () => {
+  const generateMapHtml = (MAP_URL) => {
     return `
       <html>
         <head>
@@ -59,7 +60,7 @@ const GetLocationScreen = () => {
           <div id="map"></div>
           <script>
             var map = L.map('map').setView([33.6844, 73.0479], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            L.tileLayer('${MAP_URL}').addTo(map);
             var markers = [];
 
             function createMarker(lat, lng, name, description, imageUrl) {
@@ -110,7 +111,7 @@ const GetLocationScreen = () => {
         <WebView
           ref={setMapRef}
           originWhitelist={['*']}
-          source={{ html: generateMapHtml() }}
+          source={{ html: generateMapHtml(MAP_URL) }}
           onMessage={(event) => {
             const locationData = JSON.parse(event.nativeEvent.data);
             setSelectedLocation(locationData);

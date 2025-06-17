@@ -14,7 +14,7 @@ import api from "../../Api/ManagerApi";
 import GeofenceService from "../../Api/GeofenceApi";
 
 const AssignGeofenceScreen = ({ navigation, route }) => {
-  const {managerId} = route.params;
+  const { managerId } = route.params;
   const [employees, setEmployees] = useState([]);
   const [geofences, setGeofences] = useState([]);
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -85,7 +85,7 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
       Alert.alert("Error", "Please select geofence type");
       return;
     }
-    
+
     console.log(selectedEmployees)
     try {
       await api.assignGeofenceToEmployees(
@@ -107,48 +107,136 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="arrow-left" size={26} color="#fff" />
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <Icon name="arrow-left" size={26} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.headerText}>Assigned Geofences</Text>
+            </View>
+
+      <View style={styles.contentContainer}>
+        {/* Employees Selection */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Select Employees</Text>
+          <MultipleSelectList
+            setSelected={(val) => setSelectedEmployees(val)}
+            data={employees}
+            save="key"
+            placeholder="Select employees"
+            searchPlaceholder="Search employees..."
+            boxStyles={styles.dropdownBox}
+            inputStyles={styles.dropdownInput}
+            dropdownStyles={styles.dropdownList}
+            badgeStyles={styles.badge}
+            badgeTextStyles={styles.badgeText}
+            notFoundText="No employees found"
+          />
+        </View>
+
+        {/* Geofence Selection */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Select Geofence</Text>
+          <SelectList
+            setSelected={setSelectedGeofence}
+            data={geofences}
+            save="key"
+            placeholder="Select geofence"
+            searchPlaceholder="Search geofences..."
+            boxStyles={styles.dropdownBox}
+            inputStyles={styles.dropdownInput}
+            dropdownStyles={styles.dropdownList}
+            notFoundText="No geofences found"
+          />
+        </View>
+
+        {/* Date and Time Selection */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Time Configuration</Text>
+
+          <View style={styles.row}>
+            <View style={[styles.column, { marginRight: 10 }]}>
+              <Text style={styles.label}>Start Date</Text>
+              <TouchableOpacity
+                onPress={() => setShowStartDatePicker(true)}
+                style={styles.dateTimeButton}
+              >
+                <Icon name="calendar" size={20} color="#6c757d" style={styles.inputIcon} />
+                <Text style={styles.dateTimeText}>{startDate || "Select date"}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.column}>
+              <Text style={styles.label}>End Date</Text>
+              <TouchableOpacity
+                onPress={() => setShowEndDatePicker(true)}
+                style={styles.dateTimeButton}
+              >
+                <Icon name="calendar" size={20} color="#6c757d" style={styles.inputIcon} />
+                <Text style={styles.dateTimeText}>{endDate || "Select date"}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.row}>
+            <View style={[styles.column, { marginRight: 10 }]}>
+              <Text style={styles.label}>Start Time</Text>
+              <TouchableOpacity
+                onPress={() => setShowStartTimePicker(true)}
+                style={styles.dateTimeButton}
+              >
+                <Icon name="clock-outline" size={20} color="#6c757d" style={styles.inputIcon} />
+                <Text style={styles.dateTimeText}>{startTime || "Select time"}</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.column}>
+              <Text style={styles.label}>End Time</Text>
+              <TouchableOpacity
+                onPress={() => setShowEndTimePicker(true)}
+                style={styles.dateTimeButton}
+              >
+                <Icon name="clock-outline" size={20} color="#6c757d" style={styles.inputIcon} />
+                <Text style={styles.dateTimeText}>{endTime || "Select time"}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Geofence Type */}
+        <View style={styles.section}>
+          <Text style={styles.label}>Geofence Type</Text>
+          <SelectList
+            setSelected={setType}
+            data={[
+              { key: "Authorized", value: "Authorized (Must be inside)" },
+              { key: "Restricted", value: "Restricted (Must be outside)" },
+            ]}
+            save="key"
+            placeholder="Select type"
+            searchPlaceholder="Search types..."
+            boxStyles={styles.dropdownBox}
+            inputStyles={styles.dropdownInput}
+            dropdownStyles={styles.dropdownList}
+          />
+        </View>
+
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={handleAssignGeofence}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.submitButtonText}>Assign Geofence</Text>
+          <Icon name="send" size={20} color="#fff" style={styles.buttonIcon} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Assign Geofence</Text>
       </View>
 
-
-      <Text style={styles.label}>Select Employees</Text>
-      <MultipleSelectList
-        setSelected={(val) => {
-          setSelectedEmployees(val)
-          console.log(selectedEmployees)
-        }}
-        data={employees}
-        save="key"
-        placeholder="Select employees"
-        boxStyles={styles.dropdown}
-        inputStyles={styles.inputText}
-        badgeStyles={styles.badge}
-        badgeTextStyles={styles.badgeText}
-      />
-
-      <Text style={styles.label}>Select Geofence</Text>
-      <SelectList
-        setSelected={setSelectedGeofence}
-        data={geofences}
-        save="key"
-        placeholder="Select geofence"
-        boxStyles={styles.dropdown}
-        inputStyles={styles.inputText}
-      />
-
-      <Text style={styles.label}>Start Date</Text>
-      <TouchableOpacity
-        onPress={() => setShowStartDatePicker(true)}
-        style={styles.dateInput}
-      >
-        <Text>{startDate || "Select start date"}</Text>
-      </TouchableOpacity>
+      {/* Date/Time Pickers */}
       <DateTimePicker
         isVisible={showStartDatePicker}
         mode="date"
@@ -158,14 +246,6 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         }}
         onCancel={() => setShowStartDatePicker(false)}
       />
-
-      <Text style={styles.label}>End Date</Text>
-      <TouchableOpacity
-        onPress={() => setShowEndDatePicker(true)}
-        style={styles.dateInput}
-      >
-        <Text>{endDate || "Select end date"}</Text>
-      </TouchableOpacity>
       <DateTimePicker
         isVisible={showEndDatePicker}
         mode="date"
@@ -175,14 +255,6 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         }}
         onCancel={() => setShowEndDatePicker(false)}
       />
-
-      <Text style={styles.label}>Start Time</Text>
-      <TouchableOpacity
-        onPress={() => setShowStartTimePicker(true)}
-        style={styles.dateInput}
-      >
-        <Text>{startTime || "Select start time"}</Text>
-      </TouchableOpacity>
       <DateTimePicker
         isVisible={showStartTimePicker}
         mode="time"
@@ -192,14 +264,6 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         }}
         onCancel={() => setShowStartTimePicker(false)}
       />
-
-      <Text style={styles.label}>End Time</Text>
-      <TouchableOpacity
-        onPress={() => setShowEndTimePicker(true)}
-        style={styles.dateInput}
-      >
-        <Text>{endTime || "Select end time"}</Text>
-      </TouchableOpacity>
       <DateTimePicker
         isVisible={showEndTimePicker}
         mode="time"
@@ -209,23 +273,6 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         }}
         onCancel={() => setShowEndTimePicker(false)}
       />
-
-      <Text style={styles.label}>Geofence Type</Text>
-      <SelectList
-        setSelected={setType}
-        data={[
-          { key: "Authorized", value: "Authorized (Must be inside)" },
-          { key: "Restricted", value: "Restricted (Must be outside)" },
-        ]}
-        save="key"
-        placeholder="Select type"
-        boxStyles={styles.dropdown}
-        inputStyles={styles.inputText}
-      />
-
-      <TouchableOpacity style={styles.submitButton} onPress={handleAssignGeofence}>
-        <Text style={styles.submitButtonText}>Assign Geofence</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -233,68 +280,133 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 20,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#F4F7FC",
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    margin: 10,
     paddingVertical: 10,
-    backgroundColor: "rgb(73, 143, 235)",
-    borderRadius: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 10, // Adjusted padding
+    backgroundColor: 'rgb(73, 143, 235)',
+    borderRadius: 10, // Added border radius
   },
   backButton: {
-    padding: 5,
+    padding: 5, // Hit area for back button
+    marginRight: 10, // Space between button and title
   },
   headerText: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
-    marginLeft: 15,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  contentContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+  },
+  section: {
+    marginBottom: 25,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#495057",
+    marginBottom: 15,
+    paddingBottom: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9ecef",
   },
   label: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#495057",
     marginBottom: 8,
-    color: "#495057",
   },
-  dropdown: {
-    borderColor: "#ced4da",
+  dropdownBox: {
     borderWidth: 1,
-    borderRadius: 4,
-    padding: 12,
+    borderColor: "#e9ecef",
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
     backgroundColor: "#fff",
-    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  inputText: {
+  dropdownInput: {
     color: "#495057",
+    fontSize: 15,
+  },
+  dropdownList: {
+    backgroundColor:'#d3def2',
+    borderWidth: 2,
+    borderColor: "#e9ecef",
+    borderRadius: 8,
+    marginTop: 5,
   },
   badge: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#4dabf7",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   badgeText: {
     color: "#fff",
+    fontSize: 12,
   },
-  dateInput: {
-    borderWidth: 1,
-    borderColor: "#ced4da",
-    borderRadius: 4,
-    padding: 12,
+  row: {
+    flexDirection: "row",
     marginBottom: 15,
+  },
+  column: {
+    flex: 1,
+  },
+  dateTimeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 15,
     backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  dateTimeText: {
+    color: "#495057",
+    fontSize: 15,
+    marginLeft: 10,
+  },
+  inputIcon: {
+    marginRight: 5,
   },
   submitButton: {
-    backgroundColor: "#007bff",
-    padding: 15,
-    borderRadius: 4,
+    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: 20,
+    backgroundColor: "rgb(73, 143, 235)",
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 10,
+    shadowColor: "#4dabf7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
   submitButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  buttonIcon: {
+    marginLeft: 10,
   },
 });
 

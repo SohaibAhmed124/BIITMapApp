@@ -2,8 +2,51 @@ import React, { useRef, useState, useEffect } from "react";
 import { View, Button, Alert, StyleSheet, Text } from "react-native";
 import { WebView } from "react-native-webview";
 import axios from "axios";
+import { BASE_IP, MAP_URL } from "../../Api/BaseConfig";
 
-const API_BASE_URL = "http://192.168.1.11:8000"; // Adjust to your backend
+const API_BASE_URL = `http://${BASE_IP}:8000`;
+
+const generateHTML = (MAP_URL) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Route</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"/>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map').setView([33.6844, 73.0479], 13);
+        L.tileLayer('${MAP_URL}').addTo(map);
+
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        var drawControl = new L.Control.Draw({
+            edit: { featureGroup: drawnItems },
+            draw: { polyline: true, polygon: false, circle: false, marker: false, rectangle: false }
+        });
+        map.addControl(drawControl);
+
+        map.on('draw:created', function (e) {
+            var layer = e.layer;
+            drawnItems.addLayer(layer);
+            var coordinates = layer.getLatLngs().map(coord => [coord.lng, coord.lat]);
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: "drawn_route", coordinates: coordinates }));
+        });
+    </script>
+</body>
+</html>
+
+`;
 
 const CreateRouteScreen = () => {
   const webViewRef = useRef(null);
@@ -55,7 +98,7 @@ const CreateRouteScreen = () => {
       </View>
       <WebView
         ref={webViewRef}
-        source={require("../../assets/createRoute.html")}
+        source={{html:generateHTML(MAP_URL)}}
         onMessage={handleMessage}
         style={{ flex: 1 }}
       />

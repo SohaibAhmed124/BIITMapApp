@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef} from "react";
 import { View, StyleSheet } from "react-native";
 import WebView from "react-native-webview";
+import { MAP_URL } from "../../../Api/BaseConfig";
+import { GeofenceMap } from "../../CustomComponents/GeofenceMap";
 
 const AllGeofencesScreen = ({ route }) => {
   const { geofences } = route.params;
@@ -23,7 +25,7 @@ const AllGeofencesScreen = ({ route }) => {
     <View style={styles.container}>
         <WebView
           ref={webViewRef}
-          source={require('../../../assets/map.html')}
+          source={{html:GeofenceMap(MAP_URL)}}
           style={styles.webView}
           onLoadEnd={() => {
             injectGeofencesScript(geofences)

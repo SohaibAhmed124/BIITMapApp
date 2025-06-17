@@ -317,7 +317,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4F7FC', // Match EmployeeList background
     // Removed main padding, applying it to specific content areas if needed
   },
-  // Header Styles (Matching EmployeeList)
   header: {
     flexDirection: 'row',
     alignItems: 'center',

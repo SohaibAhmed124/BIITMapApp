@@ -46,7 +46,7 @@ const AdminService = {
   // Deactivate (soft delete) a user
   deactivateUser: async (userId) => {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/admin/deactivate-user/${userId}`);
+      const response = await axios.patch(`${API_BASE_URL}/admin/deactivate-user/${userId}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error deactivating user' };
@@ -159,6 +159,15 @@ const AdminService = {
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: "Error deactivating employee" };
+    }
+  },
+  // Deactivate (soft delete) a user
+  HideEmployee: async (employeeId) => {
+    try {
+      const response = await axios.patch(`${API_BASE_URL}/admin/hide-employee/${employeeId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error hidding employee' };
     }
   },
 };

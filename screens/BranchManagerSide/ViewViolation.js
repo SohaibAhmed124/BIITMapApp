@@ -17,6 +17,7 @@ import DateTimePicker from "react-native-modal-datetime-picker";
 import api from '../../Api/ManagerApi';
 import GeofenceService from '../../Api/GeofenceApi';
 import dayjs from 'dayjs';
+import { MAP_URL } from '../../Api/BaseConfig';
 
 const ViolationsScreen = ({ navigation, route }) => {
   const { managerId } = route.params;
@@ -97,7 +98,7 @@ const ViolationsScreen = ({ navigation, route }) => {
       case 'exit':
         return theme.colors.error;
       case 'entry':
-        return theme.colors.warning;
+        return '#f7c331';
       default:
         return theme.colors.backdrop;
     }
@@ -106,7 +107,7 @@ const ViolationsScreen = ({ navigation, route }) => {
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
   };
-  const generateMapHtml = (boundary) => {
+  const generateMapHtml = (boundary, MAP_URL) => {
     if (!boundary || boundary.length === 0) return '';
 
     const coordinates = boundary.map(point => [point.latitude, point.longitude]);
@@ -131,7 +132,7 @@ const ViolationsScreen = ({ navigation, route }) => {
       <div id="map"></div>
       <script>
         var map = L.map('map',{zoomControl:false}).setView(${JSON.stringify(coordinates[0])}, 17);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer('${MAP_URL}', {
           maxZoom: 19
         }).addTo(map);
 
@@ -183,7 +184,7 @@ const ViolationsScreen = ({ navigation, route }) => {
               <View style={styles.mapContainer}>
                 <WebView
                   originWhitelist={['*']}
-                  source={{ html: generateMapHtml(item.geo_boundary) }}
+                  source={{ html: generateMapHtml(item.geo_boundary, MAP_URL) }}
                   style={styles.mapWebView}
                   scrollEnabled={false}
                 />

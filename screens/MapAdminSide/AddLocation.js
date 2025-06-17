@@ -3,6 +3,37 @@ import { View, Text, TextInput, Alert, StyleSheet, TouchableOpacity, Modal, Imag
 import WebView from 'react-native-webview';
 import { launchImageLibrary } from 'react-native-image-picker';
 import mapLocationApi from '../../Api/MapLocationApi';
+import { MAP_URL } from '../../Api/BaseConfig';
+
+const generateHTML = (MAP_URL) =>`
+      <html>
+      <head>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        <style>
+          body { margin: 0; padding: 0; }
+          #map { height: 100vh; }
+        </style>
+      </head>
+      <body>
+        <div id="map"></div>
+        <script>
+          var map = L.map('map').setView([33.6844, 73.0479], 13);
+          L.tileLayer('${MAP_URL}').addTo(map);
+          
+          var marker;
+          map.on('click', function(e) {
+            if (marker) {
+              marker.setLatLng(e.latlng);
+            } else {
+              marker = L.marker(e.latlng).addTo(map);
+            }
+            window.ReactNativeWebView.postMessage(JSON.stringify(e.latlng));
+          });
+        </script>
+      </body>
+    </html>
+`;
 
 const AddLocationScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -74,7 +105,7 @@ const AddLocationScreen = ({ navigation }) => {
         <Text style={styles.headerText}>Add Locations</Text>
       </View>
 
-      <WebView source={require('../../assets/addLocation.html')} onMessage={handleMapPress} style={styles.map} />
+      <WebView source={{html:generateHTML(MAP_URL)}} onMessage={handleMapPress} style={styles.map} />
 
       {/* Confirmation Modal */}
       <Modal visible={isConfirmModalVisible} transparent animationType="slide">

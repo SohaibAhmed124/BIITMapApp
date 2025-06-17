@@ -21,6 +21,7 @@ import DateTimePicker from 'react-native-modal-datetime-picker';
 import api from '../../Api/ManagerApi';
 import GeofenceService from '../../Api/GeofenceApi';
 import dayjs from 'dayjs';
+import { MAP_URL } from '../../Api/BaseConfig';
 
 const EmpViolation = ({ navigation, route }) => {
     const { employeeId, employeeName } = route.params;
@@ -91,7 +92,7 @@ const EmpViolation = ({ navigation, route }) => {
             case 'exit':
                 return theme.colors.error;
             case 'entry':
-                return theme.colors.tertiary || '#03fc35';
+                return '#f7c331';
             default:
                 return theme.colors.backdrop;
         }
@@ -101,7 +102,7 @@ const EmpViolation = ({ navigation, route }) => {
         setExpandedId(prev => (prev === id ? null : id));
     };
 
-    const generateMapHtml = (boundary) => {
+    const generateMapHtml = (boundary, MAP_URL) => {
         if (!boundary || boundary.length === 0) return '';
 
         const coordinates = boundary.map(point => [point.latitude, point.longitude]);
@@ -126,7 +127,7 @@ const EmpViolation = ({ navigation, route }) => {
       <div id="map"></div>
       <script>
         var map = L.map('map',{zoomControl:false}).setView(${JSON.stringify(coordinates[0])}, 17);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer('${MAP_URL}', {
           maxZoom: 19
         }).addTo(map);
 
@@ -175,7 +176,7 @@ const EmpViolation = ({ navigation, route }) => {
                             <View style={styles.mapContainer}>
                                 <WebView
                                     originWhitelist={['*']}
-                                    source={{ html: generateMapHtml(item.geo_boundary) }}
+                                    source={{ html: generateMapHtml(item.geo_boundary, MAP_URL) }}
                                     style={styles.mapWebView}
                                     scrollEnabled={false}
                                 />

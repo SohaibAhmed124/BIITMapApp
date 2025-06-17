@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, Alert, Pressable, StyleSheet, ActivityIn
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/Ionicons';
 import GeofenceService from '../../../Api/GeofenceApi';
+import { MAP_URL } from '../../../Api/BaseConfig';
+import { GeofenceMap } from '../../CustomComponents/GeofenceMap';
 
 const CreateGeofenceScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -63,7 +65,7 @@ const CreateGeofenceScreen = ({ navigation }) => {
       <WebView
         ref={webViewRef}
         // source={require('../../../assets/map.html')}
-        source={{ uri: 'file:///android_asset/map.html' }}
+        source={{ html:GeofenceMap(MAP_URL) }}
         onMessage={handleMapMessage}
         style={styles.mapContainer}
         javaScriptEnabled

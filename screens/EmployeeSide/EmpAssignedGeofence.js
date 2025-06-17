@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { format, parseISO } from 'date-fns';
 import { WebView } from 'react-native-webview';
 import { SelectList } from 'react-native-dropdown-select-list';
+import { MAP_URL } from '../../Api/BaseConfig';
 
 const AssignedGeofenceDetailsScreen = ({ route, navigation }) => {
     const { geofences, employeeName } = route.params;
@@ -40,7 +41,7 @@ const AssignedGeofenceDetailsScreen = ({ route, navigation }) => {
         <div id="map"></div>
         <script>
             var map = L.map('map').setView([${coordinates[0]?.[0] || 0}, ${coordinates[0]?.[1] || 0}], 17);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            L.tileLayer('${MAP_URL}', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
 
@@ -56,11 +57,10 @@ const AssignedGeofenceDetailsScreen = ({ route, navigation }) => {
         <View style={styles.container}>
             {/* HEADER */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Icon name="arrow-back" size={24} color="#fff" />
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Icon name="arrow-back" size={26} color="#fff" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Geofence Details</Text>
-                <View style={{ width: 24 }} /> {/* For spacing */}
+                <Text style={styles.headerText}>Geofence Details</Text>
             </View>
 
             {/* FLOATING DROPDOWN */}
@@ -164,21 +164,24 @@ const AssignedGeofenceDetailsScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        padding:10,
         backgroundColor: '#f5f5f5',
     },
     header: {
-        height: 56,
-        backgroundColor: '#2E86C1',
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingTop: Platform.OS === 'ios' ? 40 : 16,
+        backgroundColor: 'rgb(73, 143, 235)',
+        borderRadius: 10,
+        padding: 10,
+        marginBottom: 10,
     },
-    headerTitle: {
+    backButton: {
+        paddingRight: 10,
+    },
+    headerText: {
+        fontSize: 20,
+        fontWeight: 'bold',
         color: '#fff',
-        fontSize: 18,
-        fontWeight: '600',
     },
     dropdownWrapper: {
         position: 'absolute',

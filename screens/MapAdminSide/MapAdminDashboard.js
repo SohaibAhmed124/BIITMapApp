@@ -15,11 +15,11 @@ const MapAdminDashboard = () => {
   };
 
   const menuItems = [
-    { icon: "account-plus", title: "Employee", screen: "AddLocation" },
-    { icon: "car", title: "Vehicle", screen: "GetLocation" },
-    { icon: "map-marker-radius", title: "GeoFence", screen: "CreateRoute" },
-    { icon: "office-building", title: "Branch", screen: "FindRoute" },
-    { icon: "office-building", title: "Branch", screen: "EmpMovSimulator" },
+    { icon: "map-marker-plus", title: "Label Location", screen: "AddLocation" },
+    { icon: "map-search", title: "Location", screen: "GetLocation" },
+    { icon: "map-clock", title: "Create Route", screen: "CreateRoute" },
+    { icon: "map-marker-path", title: "Find Route", screen: "FindRoute" },
+    { icon: "account-supervisor-circle", title: "Employee Simulator", screen: "EmpMovSimulator" },
   ];
 
   return (
@@ -32,7 +32,7 @@ const MapAdminDashboard = () => {
       {/* Profile Section */}
       <View style={styles.profileContainer}>
         <Image
-          source={{ uri: "https://logodownload.org/wp-content/uploads/2019/07/udemy-logo-5.png" }}
+          source={require('../../assets/admin.jpg')}
           style={styles.profileImage}
         />
         <Text style={styles.greeting}>Hello, {userName}</Text>
@@ -45,22 +45,21 @@ const MapAdminDashboard = () => {
         numColumns={2}
         contentContainerStyle={styles.grid}
         renderItem={({ item }) => (
-          <DashboardCard icon={item.icon} title={item.title} onPress={() => navigation.navigate(item.screen)} />
+          <DashboardCard 
+            icon={item.icon} 
+            title={item.title} 
+            onPress={() => navigation.navigate(item.screen)} 
+          />
         )}
         removeClippedSubviews={false}
       />
 
       <TouchableOpacity
         onPress={handleLogout}
-        style={{
-          marginTop: 20,
-          backgroundColor: "#e74c3c",
-          padding: 12,
-          borderRadius: 8,
-          alignItems: "center"
-        }}
+        style={styles.logoutButton}
       >
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>Logout</Text>
+        <Icon name="logout" size={20} color="#fff" />
+        <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
     </View>
   );
@@ -69,45 +68,64 @@ const MapAdminDashboard = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F4F7FC", // Light gray-blue background
+    backgroundColor: "#F4F7FC",
     padding: 15,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
+    justifyContent: "center",
+    paddingVertical: 15,
     backgroundColor: "rgb(73, 143, 235)",
     borderRadius: 10,
-    paddingHorizontal: 10,
-  },
-  backButton: {
-    padding: 5,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    marginBottom: 20,
   },
   headerText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#fff",
-    marginLeft: 15,
   },
   profileContainer: {
     alignItems: "center",
-    marginTop: 20,
+    marginVertical: 20,
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#ccc",
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: "rgb(73, 143, 235)",
   },
   greeting: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#333",
-    marginTop: 10,
+    marginTop: 15,
   },
   grid: {
-    marginTop: 30,
-    justifyContent: "space-around",
+    marginTop: 10,
+    paddingBottom: 20,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: "#e74c3c",
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 20,
+    elevation: 2,
+  },
+  logoutText: {
+    color: "#fff",
+    fontWeight: "bold",
+    marginLeft: 10,
+    fontSize: 16,
   },
 });
 
