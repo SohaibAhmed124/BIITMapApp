@@ -1,30 +1,80 @@
-import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, Text, StyleSheet, Modal, Image, TouchableOpacity, TextInput, FlatList } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, ActivityIndicator, Text, StyleSheet, Modal, Image, TouchableOpacity, TextInput, FlatList, ScrollView } from 'react-native';
 import WebView from 'react-native-webview';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { BASE_URL, MAP_URL } from '../../Api/BaseConfig';
 import mapLocationApi from '../../Api/MapLocationApi';
-import { MAP_URL } from '../../Api/BaseConfig';
 
-const GetLocationScreen = () => {
+// Color scheme
+const colors = {
+  primary: 'rgb(73, 143, 235)',
+  primaryLight: 'rgba(73, 143, 235, 0.2)',
+  primaryDark: 'rgb(50, 120, 210)',
+  secondary: 'rgb(235, 179, 73)',
+  background: 'rgb(245, 247, 250)',
+  white: '#ffffff',
+  lightGray: 'rgb(230, 230, 230)',
+  gray: 'rgb(180, 180, 180)',
+  darkGray: 'rgb(100, 100, 100)',
+  success: 'rgb(76, 175, 80)',
+  danger: 'rgb(244, 67, 54)',
+  warning: 'rgb(255, 193, 7)',
+};
+
+// Custom marker icons
+const iconMap = {
+  hospital: `${BASE_URL}/uploads/icons/hospital.png`,
+  ptcl: `${BASE_URL}/uploads/icons/ptcl.png`,
+  toll: `${BASE_URL}/uploads/icons/Toll.png`,
+  police: `${BASE_URL}/uploads/icons/police(1).png`,
+  school: `${BASE_URL}/uploads/icons/school.png`,
+  restaurant: `${BASE_URL}/uploads/icons/resturant.png`,
+  atm: `${BASE_URL}/uploads/icons/atm.png`,
+  fuel: `${BASE_URL}/uploads/icons/fuel.png`,
+  park: `${BASE_URL}/uploads/icons/park (2).png`
+};
+
+const layerTypes = [
+  { id: 'hospital', name: 'Hospitals', icon: 'local-hospital' },
+  { id: 'ptcl', name: 'PTCL Offices', icon: 'business' },
+  { id: 'toll', name: 'Toll Plazas', icon: 'attach-money' },
+  { id: 'police', name: 'Police Stations', icon: 'security' },
+  { id: 'school', name: 'Schools', icon: 'school' },
+  { id: 'restaurant', name: 'Restaurants', icon: 'restaurant' },
+  { id: 'atm', name: 'ATMs/Banks', icon: 'account-balance' },
+  { id: 'fuel', name: 'Fuel Stations', icon: 'local-gas-station' },
+  { id: 'park', name: 'Parks', icon: 'park' }
+];
+
+const GetLocationScreen = ({navigation}) => {
   const [locations, setLocations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredLocations, setFilteredLocations] = useState([]);
-  const [mapRef, setMapRef] = useState(null)
+  const [activeLayer, setActiveLayer] = useState(null);
+  const [showLayers, setShowLayers] = useState(false);
+  const mapRef = useRef(null);
 
-  useEffect(() => {
-    fetchLocations();
-  }, []);
+  useEffect(() => { 
+    if (activeLayer) {
+      fetchLayerLocations(activeLayer);
+    }
+  }, [activeLayer]);
 
-  const fetchLocations = async () => {
+  const fetchLayerLocations = async (layer) => {
     try {
-      const data = await mapLocationApi.getAllLocations();
+      setLoading(true);
+      setError(null);
+      const data = await mapLocationApi.getLocationByType({type:layer});
+      console.log(data);
       setLocations(data);
     } catch (err) {
-      setError('Failed to fetch locations. Please try again.');
+      setError(`Failed to fetch ${layer} data. Please try again.`);
+      setLocations([]);
     } finally {
       setLoading(false);
     }
@@ -33,7 +83,9 @@ const GetLocationScreen = () => {
   const handleSearch = (query) => {
     setSearchQuery(query);
     if (query) {
-      setFilteredLocations(locations.filter(loc => loc.name.toLowerCase().includes(query.toLowerCase())));
+      setFilteredLocations(locations.filter(loc => 
+        loc.name.toLowerCase().includes(query.toLowerCase())
+      ));
     } else {
       setFilteredLocations([]);
     }
@@ -42,36 +94,59 @@ const GetLocationScreen = () => {
   const handleLocationSelect = (location) => {
     setSearchQuery(location.name);
     setFilteredLocations([]);
-    mapRef.injectJavaScript(`map.setView([${location.latitude}, ${location.longitude}], 18);`);
+    mapRef.current?.injectJavaScript(`
+      map.setView([${location.latitude}, ${location.longitude}], 18);
+      L.marker([${location.latitude}, ${location.longitude}], {
+        icon: L.icon({
+          iconUrl: '${iconMap[location.loc_type]}',
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+          popupAnchor: [0, -32]
+        })
+      }).addTo(map)
+      .bindPopup("${location.name}")
+      .openPopup();
+    `);
   };
 
   const generateMapHtml = (MAP_URL) => {
+    const markersScript = locations.map(loc => `
+      L.marker([${loc.latitude}, ${loc.longitude}], {
+        icon: L.icon({
+          iconUrl: '${iconMap[loc.loc_type]}',
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+          popupAnchor: [0, -32]
+        })
+      }).addTo(map)
+      .on('click', function() {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ 
+          name: "${loc.name}", 
+          description: "${loc.description}", 
+          image_url: "${loc.image_url}",
+          loc_type: "${loc.loc_type}"
+        }));
+      });
+    `).join('\n');
+
     return `
       <html>
         <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
           <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
           <style>
-        body { margin: 0; padding: 0; }
-        #map { height: 100vh; }
-    </style>
+            body { margin: 0; padding: 0; }
+            #map { height: 100vh; }
+          </style>
         </head>
         <body>
           <div id="map"></div>
           <script>
-            var map = L.map('map').setView([33.6844, 73.0479], 12);
+            var map = L.map('map', {zoomControl:false}).setView([33.6844, 73.0479], 12);
+            L.control.zoom({position:'bottomright'}).addTo(map);
             L.tileLayer('${MAP_URL}').addTo(map);
-            var markers = [];
-
-            function createMarker(lat, lng, name, description, imageUrl) {
-              var marker = L.marker([lat, lng]).addTo(map);
-              marker.on('click', function() {
-                window.ReactNativeWebView.postMessage(JSON.stringify({ name, description, image_url: imageUrl }));
-              });
-              markers.push({ marker, lat, lng });
-            }
-
-            ${locations.map(loc => `createMarker(${loc.latitude}, ${loc.longitude}, "${loc.name}", "${loc.description}", "${loc.image_url}");`).join('\n')}
+            ${markersScript}
           </script>
         </body>
       </html>
@@ -80,36 +155,123 @@ const GetLocationScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Map Locations</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={26} color={colors.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Locations</Text>
       </View>
+
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchBar}
-          placeholder="Search location..."
-          value={searchQuery}
-          onChangeText={handleSearch}
-        />
+        <View style={styles.searchBarContainer}>
+          <Ionicons name="search" size={20} color={colors.gray} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchBar}
+            placeholder="Search location..."
+            placeholderTextColor={colors.gray}
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+          <TouchableOpacity 
+            style={styles.layerButton}
+            onPress={() => setShowLayers(!showLayers)}
+          >
+            <MaterialIcons name="layers" size={24} color={colors.white} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Search Suggestions */}
         {searchQuery.length > 0 && (
           <FlatList
             data={filteredLocations}
             keyExtractor={(item) => item.id.toString()}
             style={styles.suggestionsList}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.suggestionItem} onPress={() => handleLocationSelect(item)}>
-                <Text>{item.name}</Text>
+              <TouchableOpacity 
+                style={styles.suggestionItem} 
+                onPress={() => handleLocationSelect(item)}
+              >
+                <MaterialIcons 
+                  name={layerTypes.find(l => l.id === item.loc_type)?.icon || 'place'} 
+                  size={20} 
+                  color={colors.primary} 
+                  style={styles.suggestionIcon}
+                />
+                <Text style={styles.suggestionText}>{item.name}</Text>
               </TouchableOpacity>
             )}
           />
         )}
       </View>
+
+      {/* Layers Panel */}
+      {showLayers && (
+        <View style={styles.layersPanel}>
+          <ScrollView>
+            {layerTypes.map((layer) => (
+              <TouchableOpacity
+                key={layer.id}
+                style={[
+                  styles.layerItem,
+                  activeLayer === layer.id && styles.activeLayerItem
+                ]}
+                onPress={() => {
+                  setActiveLayer(activeLayer === layer.id ? null : layer.id);
+                  setShowLayers(false);
+                }}
+              >
+                <MaterialIcons 
+                  name={layer.icon} 
+                  size={24} 
+                  color={activeLayer === layer.id ? colors.white : colors.primary} 
+                />
+                <Text style={[
+                  styles.layerText,
+                  activeLayer === layer.id && styles.activeLayerText
+                ]}>
+                  {layer.name}
+                </Text>
+                {activeLayer === layer.id && locations.length > 0 && (
+                  <View style={[
+                    styles.layerBadge,
+                    activeLayer === layer.id && styles.activeLayerBadge
+                  ]}>
+                    <Text style={[
+                      styles.layerBadgeText,
+                      activeLayer === layer.id && styles.activeLayerBadgeText
+                    ]}>
+                      {locations.length}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Map or Loading/Error State */}
       {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading {activeLayer} locations...</Text>
+        </View>
       ) : error ? (
-        <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.errorContainer}>
+          <MaterialIcons name="error-outline" size={40} color={colors.danger} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => activeLayer && fetchLayerLocations(activeLayer)}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <WebView
-          ref={setMapRef}
+          ref={mapRef}
           originWhitelist={['*']}
           source={{ html: generateMapHtml(MAP_URL) }}
           onMessage={(event) => {
@@ -117,23 +279,61 @@ const GetLocationScreen = () => {
             setSelectedLocation(locationData);
             setModalVisible(true);
           }}
-          style={{ flex: 1 }}
+          style={styles.map}
+          startInLoadingState={true}
+          renderLoading={() => (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          )}
         />
       )}
 
-      <Modal visible={modalVisible} transparent animationType="slide">
+      {/* Location Details Modal */}
+      <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-              <Ionicons name="close" size={24} color="black" />
+            <TouchableOpacity 
+              style={styles.closeButton} 
+              onPress={() => setModalVisible(false)}
+            >
+              <Ionicons name="close" size={24} color={colors.darkGray} />
             </TouchableOpacity>
             {selectedLocation && (
               <>
-                <Text style={styles.title}>{selectedLocation.name}</Text>
-                <Text>{selectedLocation.description}</Text>
-                {selectedLocation.image_url && (
-                  <Image source={{ uri: selectedLocation.image_url }} style={styles.image} />
+                <View style={styles.locationTypeBadge}>
+                  <MaterialIcons 
+                    name={layerTypes.find(l => l.id === selectedLocation.loc_type)?.icon || 'place'} 
+                    size={16} 
+                    color={colors.white} 
+                  />
+                  <Text style={styles.locationTypeText}>
+                    {layerTypes.find(l => l.id === selectedLocation.loc_type)?.name || selectedLocation.loc_type}
+                  </Text>
+                </View>
+                <Text style={styles.modalTitle}>{selectedLocation.name}</Text>
+                {selectedLocation.image_url ? (
+                  <Image 
+                    source={{ uri: `${BASE_URL}${selectedLocation.image_url}` }} 
+                    style={styles.modalImage} 
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.imagePlaceholder}>
+                    <MaterialIcons name="photo" size={50} color={colors.gray} />
+                  </View>
                 )}
+                <Text style={styles.modalDescription}>{selectedLocation.description}</Text>
+                {/* <TouchableOpacity 
+                  style={styles.directionsButton}
+                  onPress={() => {
+                    // Implement directions functionality
+                    setModalVisible(false);
+                  }}
+                >
+                  <MaterialIcons name="directions" size={20} color={colors.white} />
+                  <Text style={styles.directionsButtonText}>Get Directions</Text>
+                </TouchableOpacity> */}
               </>
             )}
           </View>
@@ -143,20 +343,264 @@ const GetLocationScreen = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "rgb(199, 217, 228)", padding:10},
-  header: { backgroundColor: "rgb(73, 143, 235)", width: 'auto', height: 50, flexDirection: 'row', borderRadius: 20, marginBottom: 10 },
-  headerText: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', padding: 10, color: "rgb(255,255,255)" },
-  searchContainer: { position: 'absolute', top: 95, left: 60, right: 10, zIndex: 10 },
-  searchBar: { backgroundColor: '#fff', padding: 10, borderRadius: 5, borderWidth: 1, borderColor: '#ccc', width: '85%' },
-  suggestionsList: { backgroundColor: '#fff', borderRadius: 5, maxHeight: 150, position: 'absolute', top: 45, left: 0, right: 0, zIndex: 10 },
-  suggestionItem: { padding: 10, borderBottomWidth: 1, borderColor: '#ddd' },
-  errorText: { color: 'red', textAlign: 'center', marginTop: 20 },
-  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { backgroundColor: 'white', padding: 20, borderRadius: 10, width: '80%', alignItems: 'center' },
-  closeButton: { position: 'absolute', top: 10, right: 10, padding: 5 },
-  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-  image: { width: 200, height: 200, marginVertical: 10, borderRadius: 10 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding:10
+  },
+  header: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    flexDirection:"row"
+  },
+  backButton: {
+    padding: 5,
+    marginRight: 10,
+  },
+  headerText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  searchContainer: {
+    position: 'absolute',
+    top: 100,
+    left: 20,
+    right: 20,
+    zIndex: 10,
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    shadowColor: colors.darkGray,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchBar: {
+    flex: 1,
+    height: 50,
+    color: colors.darkGray,
+    fontSize: 16,
+  },
+  layerButton: {
+    backgroundColor: colors.primary,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
+  },
+  suggestionsList: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    maxHeight: 200,
+    marginTop: 5,
+    shadowColor: colors.darkGray,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.lightGray,
+  },
+  suggestionIcon: {
+    marginRight: 10,
+  },
+  suggestionText: {
+    fontSize: 16,
+    color: colors.darkGray,
+  },
+  layersPanel: {
+    position: 'absolute',
+    top: 140,
+    right: 20,
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    padding: 10,
+    zIndex: 20,
+    width: 200,
+    maxHeight: 300,
+    shadowColor: colors.darkGray,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  layerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 5,
+  },
+  activeLayerItem: {
+    backgroundColor: colors.primary,
+  },
+  layerText: {
+    marginLeft: 10,
+    fontSize: 14,
+    color: colors.darkGray,
+    flex: 1,
+  },
+  activeLayerText: {
+    color: colors.white,
+  },
+  layerBadge: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 5,
+  },
+  activeLayerBadge: {
+    backgroundColor: colors.primaryDark,
+  },
+  layerBadgeText: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: 'bold',
+  },
+  activeLayerBadgeText: {
+    color: colors.white,
+  },
+  map: {
+    flex: 1,
+    marginTop: 10,
+    borderRadius:10
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  loadingText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: colors.darkGray,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: colors.background,
+  },
+  errorText: {
+    marginTop: 15,
+    fontSize: 16,
+    color: colors.danger,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 20,
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: colors.white,
+    borderRadius: 15,
+    padding: 20,
+    width: '85%',
+    maxHeight: '80%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.primaryDark,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  modalImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  imagePlaceholder: {
+    width: '100%',
+    height: 180,
+    borderRadius: 10,
+    backgroundColor: colors.lightGray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  modalDescription: {
+    fontSize: 16,
+    color: colors.darkGray,
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  directionsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  directionsButtonText: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  locationTypeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 15,
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+  },
+  locationTypeText: {
+    color: colors.white,
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginLeft: 5,
+  },
 });
 
 export default GetLocationScreen;

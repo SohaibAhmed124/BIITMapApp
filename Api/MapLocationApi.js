@@ -8,7 +8,11 @@ const mapLocationApi = {
   // Add a new location
   addLocation: async (locationData) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/add-map-location`, locationData);
+      const response = await axios.post(`${API_BASE_URL}/add-map-location`, locationData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error.message;
@@ -29,6 +33,15 @@ const mapLocationApi = {
   getLocationById: async (id) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/map-locations/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  },
+  // get Location by Type
+  getLocationByType: async (type) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/map-locations`, type);
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : error.message;
