@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { format, parseISO } from 'date-fns';
 import { WebView } from 'react-native-webview';
@@ -82,7 +82,16 @@ const AssignedGeofenceDetailsScreen = ({ route }) => {
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Daily Time:</Text>
           <Text style={styles.detailValue}>
-            {geofence.start_time} - {geofence.end_time}
+            {new Date(`2000-01-01T${geofence.start_time}`).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            })} - {new Date(`2000-01-01T${geofence.end_time}`).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            })}
+
           </Text>
         </View>
       </View>

@@ -29,6 +29,24 @@ const mapLocationApi = {
     }
   },
 
+  // Get all locations
+  getThreats: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/threat-simulation/all`);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  },
+  // Get all locations
+  getLines: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/map-lines/all`);
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  },
   // Get a location by ID
   getLocationById: async (id) => {
     try {

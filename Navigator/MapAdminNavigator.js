@@ -6,6 +6,8 @@ import AddLocationScreen from '../screens/MapAdminSide/AddLocation';
 import FindRouteScreen from '../screens/MapAdminSide/getRouteGH';
 import EmployeeMovementSimulatorScreen from '../screens/MapAdminSide/UserLocationSimulation';
 import MapAdminDashboard from '../screens/MapAdminSide/MapAdminDashboard';
+import LayerCreation from '../screens/MapAdminSide/PolylineLayerCreation';
+import ThreatLayerScreen from '../screens/MapAdminSide/ThreatLayerCreation';
 
 const MapStack = createNativeStackNavigator();
 
@@ -17,6 +19,8 @@ const MapNavigator = () => {
         <MapStack.Screen name="AddLocation" component={AddLocationScreen} />
         <MapStack.Screen name="FindRoute" component={FindRouteScreen} />
         <MapStack.Screen name="CreateRoute" component={CreateRouteScreen} />
+        <MapStack.Screen name="PolylineLayer" component={LayerCreation} />
+        <MapStack.Screen name="ThreatLayer" component={ThreatLayerScreen} />
         <MapStack.Screen name="EmpMovSimulator" component={EmployeeMovementSimulatorScreen} />
     </MapStack.Navigator>
   );

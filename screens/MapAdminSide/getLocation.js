@@ -22,6 +22,14 @@ const colors = {
   warning: 'rgb(255, 193, 7)',
 };
 
+// Threat level colors
+const threatColors = {
+  'Low': '#10B981',
+  'Medium': '#F59E0B',
+  'High': '#EF4444',
+  'Critical': '#8B0000'
+};
+
 // Custom marker icons
 const iconMap = {
   hospital: `${BASE_URL}/uploads/icons/hospital.png`,
@@ -32,7 +40,7 @@ const iconMap = {
   restaurant: `${BASE_URL}/uploads/icons/resturant.png`,
   atm: `${BASE_URL}/uploads/icons/atm.png`,
   fuel: `${BASE_URL}/uploads/icons/fuel.png`,
-  park: `${BASE_URL}/uploads/icons/park (2).png`
+  park: `${BASE_URL}/uploads/icons/park (2).png`,
 };
 
 const layerTypes = [
@@ -44,11 +52,15 @@ const layerTypes = [
   { id: 'restaurant', name: 'Restaurants', icon: 'restaurant' },
   { id: 'atm', name: 'ATMs/Banks', icon: 'account-balance' },
   { id: 'fuel', name: 'Fuel Stations', icon: 'local-gas-station' },
-  { id: 'park', name: 'Parks', icon: 'park' }
+  { id: 'park', name: 'Parks', icon: 'park' },
+  // { id: 'threat', name: 'Threat Areas', icon: 'warning' },
+  // { id: 'lines', name: 'Transport Lines', icon: 'alt-route' }
 ];
 
 const GetLocationScreen = ({navigation}) => {
   const [locations, setLocations] = useState([]);
+  const [threats, setThreats] = useState([]);
+  const [lines, setLines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -57,24 +69,56 @@ const GetLocationScreen = ({navigation}) => {
   const [filteredLocations, setFilteredLocations] = useState([]);
   const [activeLayer, setActiveLayer] = useState(null);
   const [showLayers, setShowLayers] = useState(false);
+  const [showThreats, setShowThreats] = useState(false);
+  const [showLines, setShowLines] = useState(false);
   const mapRef = useRef(null);
 
   useEffect(() => { 
     if (activeLayer) {
       fetchLayerLocations(activeLayer);
     }
-  }, [activeLayer]);
+    // Always fetch threats and lines if their toggles are on
+    if (showThreats) fetchThreats();
+    if (showLines) fetchLines();
+  }, [activeLayer, showThreats, showLines]);
 
   const fetchLayerLocations = async (layer) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await mapLocationApi.getLocationByType({type:layer});
-      console.log(data);
+      const data = await mapLocationApi.getLocationByType({type: layer});
       setLocations(data);
     } catch (err) {
       setError(`Failed to fetch ${layer} data. Please try again.`);
       setLocations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchThreats = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await mapLocationApi.getThreats();
+      setThreats(response.data);
+    } catch (err) {
+      setError('Failed to fetch threat data. Please try again.');
+      setThreats([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLines = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await mapLocationApi.getLines();
+      setLines(data);
+    } catch (err) {
+      setError('Failed to fetch transport lines. Please try again.');
+      setLines([]);
     } finally {
       setLoading(false);
     }
@@ -85,7 +129,7 @@ const GetLocationScreen = ({navigation}) => {
     if (query) {
       setFilteredLocations(locations.filter(loc => 
         loc.name.toLowerCase().includes(query.toLowerCase())
-      ));
+      ))
     } else {
       setFilteredLocations([]);
     }
@@ -94,18 +138,10 @@ const GetLocationScreen = ({navigation}) => {
   const handleLocationSelect = (location) => {
     setSearchQuery(location.name);
     setFilteredLocations([]);
+    if (location.loc_type === 'threat') setShowThreats(true);
+    if (location.loc_type === 'lines') setShowLines(true);
     mapRef.current?.injectJavaScript(`
       map.setView([${location.latitude}, ${location.longitude}], 18);
-      L.marker([${location.latitude}, ${location.longitude}], {
-        icon: L.icon({
-          iconUrl: '${iconMap[location.loc_type]}',
-          iconSize: [32, 32],
-          iconAnchor: [16, 32],
-          popupAnchor: [0, -32]
-        })
-      }).addTo(map)
-      .bindPopup("${location.name}")
-      .openPopup();
     `);
   };
 
@@ -121,6 +157,7 @@ const GetLocationScreen = ({navigation}) => {
       }).addTo(map)
       .on('click', function() {
         window.ReactNativeWebView.postMessage(JSON.stringify({ 
+          type: 'location',
           name: "${loc.name}", 
           description: "${loc.description}", 
           image_url: "${loc.image_url}",
@@ -128,6 +165,67 @@ const GetLocationScreen = ({navigation}) => {
         }));
       });
     `).join('\n');
+
+    const threatsScript = showThreats ? threats.map(threat => {
+      const coordinates = threat.path.map(coord => `[${coord[0]}, ${coord[1]}]`).join(', ');
+      const color = threatColors[threat.threat_level] || threatColors['Medium'];
+      return `
+        L.polygon([${coordinates}], {
+          color: '${color}',
+          fillColor: '${color}',
+          fillOpacity: 0.4,
+          weight: 2
+        }).addTo(map)
+        .on('click', function() {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'threat',
+            name: "${threat.threat_level}",
+            description: "${threat.description || 'Potential threat area'}",
+            start_time: "${threat.start_time}",
+            end_time: "${threat.end_time}"
+          }));
+        });
+      `;
+    }).join('\n') : '';
+
+    const linesScript = showLines ? lines.map(line => {
+      const coordinates = line.coordinates.map(coord => `[${coord[1]}, ${coord[0]}]`).join(', ');
+      let lineColor = '#1e40af';
+      let dashArray = null;
+      
+      switch(line.category) {
+        case 'ptcl':
+          lineColor = '#7e22ce';
+          break;
+        case 'railway':
+          lineColor = '#1e293b';
+          break;
+        case 'highways':
+          lineColor = '#f59e0b';
+          break;
+        case 'threat':
+          lineColor = '#dc2626';
+          dashArray = '10, 10';
+          break;
+      }
+
+      return `
+        L.polyline([${coordinates}], {
+          color: '${lineColor}',
+          weight: 4,
+          opacity: 0.8,
+          dashArray: ${dashArray ? `'${dashArray}'` : 'null'}
+        }).addTo(map)
+        .on('click', function() {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'line',
+            name: "${line.name}",
+            description: "${line.description || ''}",
+            category: "${line.category}"
+          }));
+        });
+      `;
+    }).join('\n') : '';
 
     return `
       <html>
@@ -147,10 +245,21 @@ const GetLocationScreen = ({navigation}) => {
             L.control.zoom({position:'bottomright'}).addTo(map);
             L.tileLayer('${MAP_URL}').addTo(map);
             ${markersScript}
+            ${threatsScript}
+            ${linesScript}
           </script>
         </body>
       </html>
     `;
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return 'Unknown';
+    const [hours, minutes] = timeString.split(':');
+    const date = new Date();
+    date.setHours(hours);
+    date.setMinutes(minutes);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -160,7 +269,7 @@ const GetLocationScreen = ({navigation}) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={26} color={colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Locations</Text>
+        <Text style={styles.headerText}>Map Layers</Text>
       </View>
 
       {/* Search Bar */}
@@ -233,7 +342,7 @@ const GetLocationScreen = ({navigation}) => {
                 ]}>
                   {layer.name}
                 </Text>
-                {activeLayer === layer.id && locations.length > 0 && (
+                {activeLayer === layer.id && (
                   <View style={[
                     styles.layerBadge,
                     activeLayer === layer.id && styles.activeLayerBadge
@@ -242,7 +351,9 @@ const GetLocationScreen = ({navigation}) => {
                       styles.layerBadgeText,
                       activeLayer === layer.id && styles.activeLayerBadgeText
                     ]}>
-                      {locations.length}
+                      {layer.id === 'threat' ? threats.length : 
+                       layer.id === 'lines' ? lines.length : 
+                       locations.length}
                     </Text>
                   </View>
                 )}
@@ -252,11 +363,42 @@ const GetLocationScreen = ({navigation}) => {
         </View>
       )}
 
+      {/* Always visible layer toggle buttons */}
+      <View style={styles.layerToggleContainer}>
+        <TouchableOpacity 
+          style={[
+            styles.layerToggleButton,
+            showThreats && styles.layerToggleButtonActive
+          ]}
+          onPress={() => setShowThreats(!showThreats)}
+        >
+          <MaterialIcons 
+            name="warning" 
+            size={20} 
+            color={showThreats ? colors.white : colors.primary} 
+          />
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[
+            styles.layerToggleButton,
+            showLines && styles.layerToggleButtonActive
+          ]}
+          onPress={() => setShowLines(!showLines)}
+        >
+          <MaterialIcons 
+            name="alt-route" 
+            size={20} 
+            color={showLines ? colors.white : colors.primary} 
+          />
+        </TouchableOpacity>
+      </View>
+
       {/* Map or Loading/Error State */}
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading {activeLayer} locations...</Text>
+          <Text style={styles.loadingText}>Loading map data...</Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
@@ -264,7 +406,11 @@ const GetLocationScreen = ({navigation}) => {
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity 
             style={styles.retryButton}
-            onPress={() => activeLayer && fetchLayerLocations(activeLayer)}
+            onPress={() => {
+              if (activeLayer === 'threat') fetchThreats();
+              else if (activeLayer === 'lines') fetchLines();
+              else if (activeLayer) fetchLayerLocations(activeLayer);
+            }}
           >
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
@@ -275,8 +421,8 @@ const GetLocationScreen = ({navigation}) => {
           originWhitelist={['*']}
           source={{ html: generateMapHtml(MAP_URL) }}
           onMessage={(event) => {
-            const locationData = JSON.parse(event.nativeEvent.data);
-            setSelectedLocation(locationData);
+            const data = JSON.parse(event.nativeEvent.data);
+            setSelectedLocation(data);
             setModalVisible(true);
           }}
           style={styles.map}
@@ -299,7 +445,38 @@ const GetLocationScreen = ({navigation}) => {
             >
               <Ionicons name="close" size={24} color={colors.darkGray} />
             </TouchableOpacity>
-            {selectedLocation && (
+            
+            {selectedLocation?.type === 'threat' ? (
+              <>
+                <View style={[styles.locationTypeBadge, { 
+                  backgroundColor: threatColors[selectedLocation.name] || colors.danger 
+                }]}>
+                  <MaterialIcons name="warning" size={16} color={colors.white} />
+                  <Text style={styles.locationTypeText}>Threat Area: {selectedLocation.name}</Text>
+                </View>
+                <Text style={styles.modalDescription}>{selectedLocation.description}</Text>
+                <View style={styles.timeContainer}>
+                  <Text style={styles.timeLabel}>Active:</Text>
+                  <Text style={styles.timeText}>
+                    {formatTime(selectedLocation.start_time)} - {formatTime(selectedLocation.end_time)}
+                  </Text>
+                </View>
+              </>
+            ) : selectedLocation?.type === 'line' ? (
+              <>
+                <View style={styles.locationTypeBadge}>
+                  <MaterialIcons name="alt-route" size={16} color={colors.white} />
+                  <Text style={styles.locationTypeText}>
+                    {selectedLocation.category === 'ptcl' ? 'PTCL Line' : 
+                     selectedLocation.category === 'railway' ? 'Railway' : 
+                     selectedLocation.category === 'highways' ? 'Highway' : 
+                     'Transport Line'}
+                  </Text>
+                </View>
+                <Text style={styles.modalTitle}>{selectedLocation.name}</Text>
+                <Text style={styles.modalDescription}>{selectedLocation.description}</Text>
+              </>
+            ) : selectedLocation ? (
               <>
                 <View style={styles.locationTypeBadge}>
                   <MaterialIcons 
@@ -324,18 +501,8 @@ const GetLocationScreen = ({navigation}) => {
                   </View>
                 )}
                 <Text style={styles.modalDescription}>{selectedLocation.description}</Text>
-                {/* <TouchableOpacity 
-                  style={styles.directionsButton}
-                  onPress={() => {
-                    // Implement directions functionality
-                    setModalVisible(false);
-                  }}
-                >
-                  <MaterialIcons name="directions" size={20} color={colors.white} />
-                  <Text style={styles.directionsButtonText}>Get Directions</Text>
-                </TouchableOpacity> */}
               </>
-            )}
+            ) : null}
           </View>
         </View>
       </Modal>
@@ -343,12 +510,11 @@ const GetLocationScreen = ({navigation}) => {
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding:10
+    padding: 10
   },
   header: {
     backgroundColor: colors.primary,
@@ -356,7 +522,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     alignItems: 'center',
-    flexDirection:"row"
+    flexDirection: "row"
   },
   backButton: {
     padding: 5,
@@ -483,10 +649,34 @@ const styles = StyleSheet.create({
   activeLayerBadgeText: {
     color: colors.white,
   },
+  layerToggleContainer: {
+    position: 'absolute',
+    top: 170,
+    right: 20,
+    zIndex: 10,
+    flexDirection: 'column',
+    gap: 10,
+  },
+  layerToggleButton: {
+    backgroundColor: colors.white,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.darkGray,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  layerToggleButtonActive: {
+    backgroundColor: colors.primary,
+  },
   map: {
     flex: 1,
     marginTop: 10,
-    borderRadius:10
+    borderRadius: 10
   },
   loadingContainer: {
     flex: 1,
@@ -600,6 +790,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginLeft: 5,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: colors.lightGray,
+    borderRadius: 8,
+  },
+  timeLabel: {
+    fontWeight: 'bold',
+    marginRight: 5,
+    color: colors.darkGray,
+  },
+  timeText: {
+    color: colors.darkGray,
   },
 });
 

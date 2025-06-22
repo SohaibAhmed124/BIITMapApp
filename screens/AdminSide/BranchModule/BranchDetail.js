@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import Icon from "react-native-vector-icons/Ionicons";
 
-const BranchDetail = ({ route }) => {
+const BranchDetail = ({ route, navigation }) => {
   const { bData } = route.params;
   const [branch, setBranch] = useState(bData);
 

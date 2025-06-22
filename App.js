@@ -14,6 +14,8 @@ import GetLocationScreen from './screens/MapAdminSide/getLocation';
 
 import LeafletMap from './screens/MapAdminSide/CongestionSimulation';
 import EmployeeMovementSimulatorScreen from './screens/MapAdminSide/UserLocationSimulation';
+import LayerCreation from './screens/MapAdminSide/PolylineLayerCreation';
+import ThreatLayerScreen from './screens/MapAdminSide/ThreatLayerCreation';
 
 
 

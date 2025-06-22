@@ -101,6 +101,7 @@ const AssignedGeofenceListScreen = ({ navigation, route }) => {
         });
 
       setAssignedGeofences(combinedData);
+      console.log(combinedData);
       // Apply filtering immediately after fetching
       applyFilters(searchQuery, activeFilter, combinedData);
 

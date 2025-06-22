@@ -20,13 +20,14 @@ const EmployeeMovementSimulatorScreen = ({ navigation }) => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await AdminService.getAllEmployees();
-      setEmployees(
-        response.employees.map((emp) => ({
+      const response = await AdminService.getAllUsers();
+      const onlyEmployees = response.users.filter(emp => emp.role !== "Manager").map((emp) => ({
           key: emp.employee_id,
           value: `${emp.first_name} ${emp.last_name}`,
         }))
-      );
+      setEmployees(onlyEmployees);
+      console.log(JSON.stringify(onlyEmployees, null, 2));
+      
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch employees.');
       console.error(error);

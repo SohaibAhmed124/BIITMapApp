@@ -118,7 +118,16 @@ const AssignedGeofenceDetailsScreen = ({ route, navigation }) => {
                     <View style={styles.detailRow}>
                         <Text style={styles.detailLabel}>Daily Time:</Text>
                         <Text style={styles.detailValue}>
-                            {String(selectedGeofence.start_time)} - {String(selectedGeofence.end_time)}
+                            {new Date(`2000-01-01T${selectedGeofence.start_time}`).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            })} - {new Date(`2000-01-01T${selectedGeofence.end_time}`).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            })}
+
                         </Text>
                     </View>
                 </View>
@@ -164,7 +173,7 @@ const AssignedGeofenceDetailsScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding:10,
+        padding: 10,
         backgroundColor: '#f5f5f5',
     },
     header: {
