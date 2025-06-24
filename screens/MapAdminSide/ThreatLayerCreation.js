@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   mapContainer: {
-    height: "60%",
+    height: "50%",
   },
   webview: {
     flex: 1,

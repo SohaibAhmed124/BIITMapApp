@@ -84,7 +84,7 @@ const UserDetail = ({ route, navigation }) => {
         </Card>
 
         {/* Hide/Show Button (only for non-Manager roles) */}
-        {user.role !== 'Manager' && (
+        {/* {user.role !== 'Manager' && (
           <Button
             mode="contained"
             onPress={toggleHideEmployee}
@@ -99,7 +99,7 @@ const UserDetail = ({ route, navigation }) => {
           >
             {user.is_hidden ? 'Hidden' : 'Hide'}
           </Button>
-        )}
+        )} */}
       </ScrollView>
     </View>
   );

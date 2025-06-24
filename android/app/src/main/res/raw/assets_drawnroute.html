@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Draw Route</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css"/>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map').setView([33.6844, 73.0479], 13); // Initial map view (Islamabad, Pakistan)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // Initialize the featureGroup for drawn features (polylines)
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        // Add Leaflet Draw control to the map
+        var drawControl = new L.Control.Draw({
+            draw: {
+                polyline: true,
+                marker: false,
+                circle: false,
+                rectangle: false,
+                polygon: false
+            },
+            edit: {
+                featureGroup: drawnItems // Enable editing on the drawn items
+            }
+        });
+        map.addControl(drawControl); // Add the control to the map
+
+        // Listen for the draw:created event (when a polyline is drawn)
+        map.on('draw:created', function (e) {
+            var layer = e.layer;
+            drawnItems.addLayer(layer); // Add the drawn polyline to the map
+
+            // Get the coordinates of the drawn polyline and send to React Native
+            var polylineCoords = layer.getLatLngs().map(function(latlng) {
+                return { lat: latlng.lat, lon: latlng.lng };
+            });
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: "route_drawn", route: polylineCoords }));
+        });
+
+        // Reset the map function to clear the drawn features
+        window.resetMap = function() {
+            drawnItems.clearLayers(); // Clear all drawn features
+        };
+    </script>
+</body>
+</html>

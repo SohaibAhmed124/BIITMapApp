@@ -17,7 +17,7 @@ const MapAdminDashboard = () => {
   const menuItems = [
     { icon: "map-search", title: "Map Layers", screen: "GetLocation" },
     { icon: "map-marker-plus", title: "Label Location", screen: "AddLocation" },
-    { icon: "map-clock", title: "Create Route", screen: "CreateRoute" },
+    // { icon: "map-clock", title: "Create Route", screen: "CreateRoute" },
     { icon: "map-marker-path", title: "Find Route", screen: "FindRoute" },
     { icon: "layers", title: "Layer Creation", screen: "PolylineLayer" },
     { icon: "shield-alert", title: "Threat Layer", screen: "ThreatLayer" },

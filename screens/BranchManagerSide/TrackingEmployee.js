@@ -244,7 +244,7 @@ const TrackingScreen = ({ navigation, route }) => {
             console.log("Auto-refreshing...");
             fetchEmployeeDetails(selectedEmployee);
             fetchAndDrawTrail(selectedEmployee, currentFilter);
-        }, 5000); // every 30s
+        }, 10000); // every 30s
 
         return () => clearInterval(interval);
     }, [selectedEmployee, currentFilter]);

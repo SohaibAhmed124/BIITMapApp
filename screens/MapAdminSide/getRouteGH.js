@@ -70,7 +70,7 @@ const generateHTML = (MAP_URL) => `
       // Function to check if point is congested
       const isCongested = (lat, lon) => {
         return congestedPoints.some(p => 
-          Math.abs(p.lat - lat) < 0.0005 && Math.abs(p.lon - lon) < 0.0005
+          Math.abs(p.lat - lat) < 0.001 && Math.abs(p.lon - lon) < 0.001
         );
       };
       
@@ -185,6 +185,7 @@ const FindRouteScreen = () => {
         `${BASE_URL}/api/location/check-congestion`,
         { graphhopper_coordinates: coordinates }
       );
+      console.log(`congested Segment - ${response.data.result.matchedPoints}`)
 
       if (response.data.result && response.data.result.status === "Segment is Congested") {
         return response.data.result.matchedPoints || [];
@@ -223,6 +224,7 @@ const FindRouteScreen = () => {
 
         // Check for congestion
         const congestedPoints = await checkCongestion(decodedCoords);
+        console.log(JSON.stringify(congestedPoints))
 
         // Display route with congestion information
         webViewRef.current.injectJavaScript(
