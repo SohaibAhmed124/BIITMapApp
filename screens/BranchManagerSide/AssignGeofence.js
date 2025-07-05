@@ -124,7 +124,9 @@ const AssignGeofenceScreen = ({ navigation, route }) => {
         <View style={styles.section}>
           <Text style={styles.label}>Select Employees</Text>
           <MultipleSelectList
-            setSelected={(val) => setSelectedEmployees(val)}
+            setSelected={(val) => {
+              setSelectedEmployees(val)
+            }}
             data={employees}
             save="key"
             placeholder="Select employees"

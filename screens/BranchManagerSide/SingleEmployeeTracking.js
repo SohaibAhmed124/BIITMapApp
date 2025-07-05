@@ -7,8 +7,9 @@ import { BASE_URL } from "../../Api/BaseConfig";
 import dayjs from 'dayjs';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Button, Card, IconButton, List, ActivityIndicator, Text, Chip } from "react-native-paper";
-import { MultipleSelectList } from "react-native-dropdown-select-list";
+import { SelectList} from "react-native-dropdown-select-list";
 import { MAP_URL } from "../../Api/BaseConfig";
+
 
 const TrackingMap = (MAP_URL) => `<!DOCTYPE html>
 <html>
@@ -58,51 +59,39 @@ const TrackingMap = (MAP_URL) => `<!DOCTYPE html>
     <script>
         // Initialize map with dynamic MAP_URL
         const map = L.map("map",{
-                preferCanvas: true,
-                zoomControl: false
+                preferCanvas: true,  // Better for mobile performance
+                zoomControl: false   // We'll add our own
             }).setView([33.6844, 73.0479], 12);
         L.tileLayer('${MAP_URL}', {
             maxZoom: 19,
             attribution: ''
         }).addTo(map);
 
+         // Add zoom control with proper position
         L.control.zoom({
             position: 'topleft'
         }).addTo(map);
 
         // Global references for map elements
-        let locationMarkers = {};
+        let locationMarker = null;
         let geofenceLayers = [];
-        let trailPolylines = {};
+        let trailPolyline = null;
 
         // Employee trail drawing function
-        function drawEmployeeTrail(employeeId, points) {
-            if (trailPolylines[employeeId]) {
-                map.removeLayer(trailPolylines[employeeId]);
+        function drawEmployeeTrail(points) {
+            if (trailPolyline) {
+                map.removeLayer(trailPolyline);
             }
-            
-            if (points && points.length > 0) {
-                const latlngs = points.map(p => [p.latitude, p.longitude]);
-                trailPolylines[employeeId] = L.polyline(latlngs, {
-                    color: getColorForEmployee(employeeId),
-                    dashArray: '5, 10'
-                }).addTo(map);
-                
-                // Fit bounds only if there's more than one point
-                if (points.length > 1) {
-                    map.fitBounds(trailPolylines[employeeId].getBounds(), { padding: [50, 50] });
-                }
-            }
-        }
-
-        // Get a consistent color for each employee based on their ID
-        function getColorForEmployee(employeeId) {
-            const colors = ['blue', 'red', 'green', 'purple', 'orange', 'darkred', 'darkblue', 'darkgreen'];
-            return colors[parseInt(employeeId) % colors.length];
+            const latlngs = points.map(p => [p.latitude, p.longitude]);
+            trailPolyline = L.polyline(latlngs, {
+                color: 'blue',
+                dashArray: '5, 10'
+            }).addTo(map);
+            map.fitBounds(trailPolyline.getBounds(), { padding: [50, 50] });
         }
 
         // Main map update function
-        function updateMap(employeeLocations, geofences) {
+        function updateMap(employeeLocation, geofences) {
             // Clear old geofences
             geofenceLayers.forEach(layer => map.removeLayer(layer));
             geofenceLayers = [];
@@ -115,6 +104,8 @@ const TrackingMap = (MAP_URL) => `<!DOCTYPE html>
                 geofences.forEach((geo) => {
                     const startDate = new Date(geo.start_date);
                     const endDate = new Date(geo.end_date);
+
+                    // Check if geofence is expired
                     const isExpired = now > endDate;
 
                     const boundary = geo.geofence_boundary.map(coord => [coord.latitude, coord.longitude]);
@@ -143,75 +134,73 @@ const TrackingMap = (MAP_URL) => `<!DOCTYPE html>
                             }));
                         });
                         geofenceLayers.push(layer);
+
+                        // Add expiration status to the popup
+                        // if (isExpired) {
+                        //     layer.bindPopup('<b>'+geo.geofence_name+'</b><br>Expired on '+geo.end_date);
+                        // }
                     }
                 });
             }
 
-            // Handle employee locations
-            if (employeeLocations && employeeLocations.length > 0) {
-                // Remove markers for employees not in the current list
-                Object.keys(locationMarkers).forEach(id => {
-                    if (!employeeLocations.some(emp => emp.employee_id === id)) {
-                        map.removeLayer(locationMarkers[id]);
-                        delete locationMarkers[id];
-                    }
+            // Handle employee location
+            if (employeeLocation) {
+                const { latitude, longitude, first_name, last_name, employee_image } = employeeLocation;
+
+                // Remove old marker if exists
+                if (locationMarker) {
+                    map.removeLayer(locationMarker);
+                    locationMarker = null;
+                }
+
+                // Create marker HTML with proper escaping
+                const iconHtml = [
+                    '<div style="',
+                    'border: 3px solid blue;',
+                    'border-radius: 50%;',
+                    'width: 50px;',
+                    'height: 50px;',
+                    'overflow: hidden;',
+                    'box-shadow: 0 0 5px #000;',
+                    'background-color: #ccc;',
+                    'display: flex;',
+                    'justify-content: center;',
+                    'align-items: center;">',
+                    '<img src="', employee_image, '" style="',
+                    'width: 100%;',
+                    'height: 100%;',
+                    'object-fit: cover;" ',
+                    'onerror="this.onerror=null; this.src=\\'https://via.placeholder.com/50\\'"/>',
+                    '</div>'
+                ].join('');
+
+                const customIcon = L.divIcon({
+                    html: iconHtml,
+                    className: '',
+                    iconSize: [50, 50],
+                    iconAnchor: [25, 25]
                 });
 
-                // Add/update markers for current employees
-                employeeLocations.forEach(employeeLocation => {
-                    const { employee_id, latitude, longitude, first_name, last_name, employee_image } = employeeLocation;
+                locationMarker = L.marker([latitude, longitude], {
+                    icon: customIcon,
+                    riseOnHover: true
+                }).addTo(map);
 
-                    // Remove old marker if exists
-                    if (locationMarkers[employee_id]) {
-                        map.removeLayer(locationMarkers[employee_id]);
-                    }
-
-                    // Create marker HTML
-                    const iconHtml = [
-                        '<div style="',
-                        'border: 3px solid ' + getColorForEmployee(employee_id) + ';',
-                        'border-radius: 50%;',
-                        'width: 50px;',
-                        'height: 50px;',
-                        'overflow: hidden;',
-                        'box-shadow: 0 0 5px #000;',
-                        'background-color: #ccc;',
-                        'display: flex;',
-                        'justify-content: center;',
-                        'align-items: center;">',
-                        '<img src="', employee_image, '" style="',
-                        'width: 100%;',
-                        'height: 100%;',
-                        'object-fit: cover;" ',
-                        'onerror="this.onerror=null; this.src=\\'https://via.placeholder.com/50\\'"/>',
-                        '</div>'
-                    ].join('');
-
-                    const customIcon = L.divIcon({
-                        html: iconHtml,
-                        className: '',
-                        iconSize: [50, 50],
-                        iconAnchor: [25, 25]
-                    });
-
-                    locationMarkers[employee_id] = L.marker([latitude, longitude], {
-                        icon: customIcon,
-                        riseOnHover: true
-                    }).addTo(map);
-
-                    locationMarkers[employee_id].bindPopup(first_name + " " + last_name);
-                });
+                locationMarker.bindPopup(first_name + " " + last_name);
+                // map.setView([latitude, longitude], 15);
             } else {
-                // Clean up if no locations
-                Object.values(locationMarkers).forEach(marker => map.removeLayer(marker));
-                locationMarkers = {};
+                // Clean up if no location
+                if (locationMarker) {
+                    map.removeLayer(locationMarker);
+                    locationMarker = null;
+                }
             }
         }
 
         // Make functions available to WebView
         window.updateMap = updateMap;
         window.drawEmployeeTrail = drawEmployeeTrail;
-        
+
         // Notify React Native that map is ready
         window.ReactNativeWebView.postMessage(JSON.stringify({
             type: "map_ready"
@@ -222,11 +211,10 @@ const TrackingMap = (MAP_URL) => `<!DOCTYPE html>
 
 const TrackingScreen = ({ navigation, route }) => {
     const [employees, setEmployees] = useState([]);
-    const [selectedEmployees, setSelectedEmployees] = useState([]);
-    const prevSelectedRef = useRef([]);
-    const [employeeLocations, setEmployeeLocations] = useState([]);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [employeeLocation, setEmployeeLocation] = useState(null);
     const [geofences, setGeofences] = useState([]);
-    const [showLocations, setShowLocations] = useState(true);
+    const [showLocation, setShowLocation] = useState(true);
     const [showGeofences, setShowGeofences] = useState(true);
     const [loading, setLoading] = useState(false);
     const [selectedGeofence, setSelectedGeofence] = useState(null);
@@ -237,7 +225,7 @@ const TrackingScreen = ({ navigation, route }) => {
     const opacityAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-        fetchEmployees();
+        fetchEmployees();;
     }, []);
 
     useEffect(() => {
@@ -250,18 +238,17 @@ const TrackingScreen = ({ navigation, route }) => {
     }, [selectedGeofence]);
 
     useEffect(() => {
-        if (selectedEmployees.length === 0) return;
+        if (!selectedEmployee) return;
 
         const interval = setInterval(() => {
             console.log("Auto-refreshing...");
-            fetchEmployeeDetails(selectedEmployees);
-            selectedEmployees.forEach(employeeId => {
-                fetchAndDrawTrail(employeeId, currentFilter);
-            });
-        }, 10000);
+            fetchEmployeeDetails(selectedEmployee);
+            fetchAndDrawTrail(selectedEmployee, currentFilter);
+        }, 10000); // every 30s
 
         return () => clearInterval(interval);
-    }, [selectedEmployees, currentFilter]);
+    }, [selectedEmployee, currentFilter]);
+
 
     const handleCloseCard = () => {
         Animated.parallel([
@@ -273,65 +260,46 @@ const TrackingScreen = ({ navigation, route }) => {
     const fetchEmployees = async () => {
         try {
             const res = await api.getEmployeesByManager(managerId);
-            setEmployees(res.employees.map(emp => ({
-                key: emp.employee_id,
-                value: `${emp.first_name} ${emp.last_name}`
-            })));
+            setEmployees(res.employees);
         } catch (error) {
             console.error("Error fetching employees:", error);
         }
     };
 
-    const fetchEmployeeDetails = async (employeeIds) => {
+    const fetchEmployeeDetails = async (employeeId) => {
         setLoading(true);
         try {
-            const locations = [];
-            const allGeofences = [];
+            const locationRes = await api.getEmployeeLocation(employeeId);
+            const geofenceRes = await api.getAssignedGeofences({ employeeId });
+            const employeeRes = await EmployeeService.getProfile(employeeId);
+            const imageUrl = `${BASE_URL}${employeeRes.profile.image}`;
 
-            for (const employeeId of employeeIds) {
-                const [locationRes, geofenceRes, employeeRes] = await Promise.all([
-                    api.getEmployeeLocation(employeeId),
-                    api.getAssignedGeofences({ employeeId }),
-                    EmployeeService.getProfile(employeeId)
-                ]);
+            // Add isExpired flag to each geofence
+            const now = new Date();
+            const processedGeofences = geofenceRes.geofences.map(geo => ({
+                ...geo,
+                isExpired: new Date(geo.end_date) < now
+            }));
 
-                if (locationRes.employeeLocations) {
-                    const imageUrl = `${BASE_URL}${employeeRes.profile.image}`;
-                    locations.push({
-                        ...locationRes.employeeLocations,
-                        employee_id: employeeId,
-                        employee_image: imageUrl
-                    });
-                }
-
-                if (geofenceRes.geofences) {
-                    const now = new Date();
-                    const processedGeofences = geofenceRes.geofences.map(geo => ({
-                        ...geo,
-                        isExpired: new Date(geo.end_date) < now,
-                        employee_name: `${employeeRes.profile.first_name} ${employeeRes.profile.last_name}`
-                    }));
-                    allGeofences.push(...processedGeofences);
-                }
-            }
-
-            setEmployeeLocations(locations);
-            setGeofences(allGeofences);
-            sendMapData(locations, allGeofences);
+            const empData = {
+                ...locationRes.employeeLocations,
+                employee_image: imageUrl
+            };
+            setEmployeeLocation(empData);
+            setGeofences(processedGeofences);
+            setSelectedEmployee(employeeId);
+            sendMapData(empData, processedGeofences);
         } catch (error) {
             console.error("Error fetching tracking data:", error);
         } finally {
             setLoading(false);
         }
     };
-
     const fetchAndDrawTrail = async (employeeId, filter) => {
         try {
             const res = await api.getAllEmployeeLocations(employeeId);
             const filtered = filterLocationsByTime(res.employees, filter);
-            webViewRef.current.injectJavaScript(
-                `drawEmployeeTrail('${employeeId}', ${JSON.stringify(filtered)});`
-            );
+            webViewRef.current.injectJavaScript(`drawEmployeeTrail(${JSON.stringify(filtered)});`);
         } catch (error) {
             console.error('Failed to fetch employee trail', error);
         }
@@ -340,9 +308,7 @@ const TrackingScreen = ({ navigation, route }) => {
     const filterLocationsByTime = (locations, filter) => {
         const now = dayjs();
         if (filter === 'Initial') {
-            return locations.sort((a, b) => new Date(b.location_timestamp) - new Date(a.location_timestamp))
-                .slice(0, 5)
-                .reverse();
+            return locations.sort((a, b) => new Date(b.location_timestamp) - new Date(a.location_timestamp)).slice(0, 5).reverse();
         }
         return locations.filter(({ location_timestamp }) => {
             const time = dayjs(location_timestamp);
@@ -355,51 +321,19 @@ const TrackingScreen = ({ navigation, route }) => {
         });
     };
 
-    const sendMapData = (locations, geofences) => {
-        webViewRef.current.injectJavaScript(
-            `updateMap(${JSON.stringify(locations)}, ${JSON.stringify(geofences)}); true;`
-        );
+    const sendMapData = (location, geofences) => {
+        webViewRef.current.injectJavaScript(`updateMap(${JSON.stringify(location)}, ${JSON.stringify(geofences)}); true;`);
     };
 
-    const toggleLocations = () => {
-        setShowLocations(!showLocations);
-        sendMapData(!showLocations ? employeeLocations : [], showGeofences ? geofences : []);
+    const toggleLocation = () => {
+        setShowLocation(!showLocation);
+        sendMapData(!showLocation ? employeeLocation : null, showGeofences ? geofences : []);
     };
 
     const toggleGeofences = () => {
         setShowGeofences(!showGeofences);
-        sendMapData(showLocations ? employeeLocations : [], !showGeofences ? geofences : []);
+        sendMapData(showLocation ? employeeLocation : null, !showGeofences ? geofences : []);
     };
-
-    const handleSelectionChange = (newSelected) => {
-        prevSelectedRef.current = [...selectedEmployees]; // Save current before update
-        setSelectedEmployees(newSelected);
-    };
-
-    const handleEmployeeSelection = (currentSelected) => {
-        const prevSelected = prevSelectedRef.current;
-
-        const removedEmployees = prevSelected.filter(id => !currentSelected.includes(id));
-
-        removedEmployees.forEach(employeeId => {
-            webViewRef.current?.injectJavaScript(
-                `drawEmployeeTrail('${employeeId}', []);`
-            );
-        });
-
-        if (currentSelected.length > 0) {
-            fetchEmployeeDetails(currentSelected);
-            currentSelected.forEach(employeeId => {
-                fetchAndDrawTrail(employeeId, 'Initial');
-            });
-            setCurrentFilter('Initial');
-        } else {
-            setEmployeeLocations([]);
-            setGeofences([]);
-            sendMapData([], []);
-        }
-    };
-
 
     return (
         <View style={styles.container}>
@@ -412,57 +346,32 @@ const TrackingScreen = ({ navigation, route }) => {
 
             <View style={styles.controlContainer}>
                 <View style={styles.toggleRow}>
-                    <Chip
-                        icon="crosshairs-gps"
-                        selected={showLocations}
-                        onPress={toggleLocations}
-                    >
-                        Locations ({selectedEmployees.length})
-                    </Chip>
-                    <Chip
-                        icon="map-marker-radius"
-                        selected={showGeofences}
-                        onPress={toggleGeofences}
-                    >
-                        Geofences
-                    </Chip>
+                    <Chip icon="crosshairs-gps" selected={showLocation} onPress={toggleLocation}>Location</Chip>
+                    <Chip icon="map-marker-radius" selected={showGeofences} onPress={toggleGeofences}>Geofences</Chip>
                 </View>
 
                 <View style={styles.filterButtons}>
                     {['Today', 'This Week', 'All Time'].map(label => (
-                        <Button
-                            key={label}
-                            mode="outlined"
-                            onPress={() => {
-                                setCurrentFilter(label);
-                                selectedEmployees.forEach(employeeId => {
-                                    fetchAndDrawTrail(employeeId, label);
-                                });
-                            }}
-                        >
-                            {label}
-                        </Button>
+                        <Button key={label} mode="outlined" onPress={() => {
+                            setCurrentFilter(label);
+                            fetchAndDrawTrail(selectedEmployee, label);
+                        }}>{label}</Button>
                     ))}
                 </View>
-
-                <MultipleSelectList
-                    setSelected={handleSelectionChange}
-                    data={employees}
-                    save="key"
-                    label="Selected Employees"
-                    placeholder="Select employees..."
-                    searchPlaceholder="Search employees..."
-                    notFoundText="No employees found"
-                    onSelect={() => {
-                        handleEmployeeSelection(selectedEmployees)
-                        console.log('Previous Selected Employees:', prevSelectedRef);
-                        console.log('Current Selected Employees:', selectedEmployees);
+                <SelectList
+                    data={employees.map(emp => ({ key: emp.employee_id, value: `${emp.first_name} ${emp.last_name}` }))}
+                    setSelected={val => {
+                        const selected = employees.find(emp => `${emp.first_name} ${emp.last_name}` === val);
+                        if (selected) {
+                            fetchEmployeeDetails(selected.employee_id);
+                            fetchAndDrawTrail(selected.employee_id, 'Initial');
+                            setCurrentFilter('Initial');
+                        }
                     }}
-                    boxStyles={styles.selectListBox}
-                    inputStyles={styles.selectListInput}
-                    dropdownStyles={styles.selectListDropdown}
-                    badgeStyles={styles.badgeStyles}
-                    badgeTextStyles={styles.badgeTextStyles}
+                    placeholder="Select Employee"
+                    search
+                    save="value"
+                    boxStyles={{ marginVertical: 10 }}
                 />
             </View>
 
@@ -470,6 +379,7 @@ const TrackingScreen = ({ navigation, route }) => {
                 {loading && <ActivityIndicator animating={true} size="large" style={styles.loading} />}
                 <WebView
                     ref={webViewRef}
+                    // source={require("../../assets/tracking.html")}
                     source={{ html: TrackingMap(MAP_URL) }}
                     style={styles.map}
                     javaScriptEnabled={true}
@@ -477,9 +387,6 @@ const TrackingScreen = ({ navigation, route }) => {
                     startInLoadingState={true}
                     onLoadEnd={() => {
                         console.log('WebView load completed');
-                        if (selectedEmployees.length > 0) {
-                            fetchEmployeeDetails(selectedEmployees);
-                        }
                     }}
                     onMessage={(event) => {
                         const data = JSON.parse(event.nativeEvent.data);
@@ -488,8 +395,8 @@ const TrackingScreen = ({ navigation, route }) => {
                         }
                         if (data.type === "map_ready") {
                             console.log('Map ready received');
-                            if (selectedEmployees.length > 0) {
-                                fetchEmployeeDetails(selectedEmployees);
+                            if (selectedEmployee) {
+                                fetchEmployeeDetails(selectedEmployee);
                             }
                         }
                     }}
@@ -498,11 +405,9 @@ const TrackingScreen = ({ navigation, route }) => {
                 <TouchableOpacity
                     style={styles.refreshFab}
                     onPress={() => {
-                        if (selectedEmployees.length > 0) {
-                            fetchEmployeeDetails(selectedEmployees);
-                            selectedEmployees.forEach(employeeId => {
-                                fetchAndDrawTrail(employeeId, currentFilter);
-                            });
+                        if (selectedEmployee) {
+                            fetchEmployeeDetails(selectedEmployee);
+                            fetchAndDrawTrail(selectedEmployee, currentFilter);
                             setCurrentFilter('Initial');
                         }
                     }}
@@ -548,7 +453,7 @@ const TrackingScreen = ({ navigation, route }) => {
                             />
                             <List.Item
                                 title="Assigned To"
-                                description={selectedGeofence.employee_name || "Unknown"}
+                                description={`${employeeLocation?.first_name} ${employeeLocation?.last_name}`}
                                 left={props => <List.Icon {...props} icon="account" />}
                             />
                         </Card.Content>
@@ -597,7 +502,7 @@ const styles = StyleSheet.create({
     mapContainer: {
         flex: 1,
         position: 'relative',
-        overflow: 'hidden',
+        overflow: 'hidden', // Important
     },
     map: {
         flex: 1,
@@ -620,38 +525,12 @@ const styles = StyleSheet.create({
         elevation: 6,
         zIndex: 10,
     },
+
     geofenceCard: {
         position: "absolute",
         bottom: 10,
         left: 10,
         right: 10,
-    },
-    selectListBox: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        marginVertical: 10,
-    },
-    selectListInput: {
-        fontSize: 16,
-    },
-    selectListDropdown: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        marginTop: -10,
-    },
-    badgeStyles: {
-        backgroundColor: 'rgb(73, 143, 235)',
-        borderRadius: 15,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        marginRight: 5,
-        marginBottom: 5,
-    },
-    badgeTextStyles: {
-        color: 'white',
-        fontSize: 12,
     },
 });
 

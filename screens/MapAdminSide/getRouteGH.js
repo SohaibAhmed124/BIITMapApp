@@ -18,18 +18,18 @@ import {
 } from "react-native-paper";
 import axios from "axios";
 import polyline from "@mapbox/polyline";
-import { ROUTE_HOST, MAP_URL, BASE_URL } from "../../Api/BaseConfig";
+import { ROUTE_HOST, MAP_URL, BASE_URL, LEAFLET_JS, LEAFLET_CSS} from "../../Api/BaseConfig";
 
 let debounceTimeout;
 
-const generateHTML = (MAP_URL) => `
+const generateHTML = (MAP_URL, JS, CSS) => `
 <!DOCTYPE html>
 <html>
 <head>
   <title>Find Route</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="${CSS}" />
+  <script src="${JS}"></script>
   <style>
     body, html { margin: 0; padding: 0; height: 100%; }
     #map { height: 100%; }
@@ -310,9 +310,11 @@ const FindRouteScreen = () => {
       <Surface style={styles.mapWrapper}>
         <WebView
           ref={webViewRef}
-          source={{ html: generateHTML(MAP_URL) }}
+          source={{ html: generateHTML(MAP_URL, LEAFLET_JS, LEAFLET_CSS) }}
           onLoadEnd={() => setIsWebViewLoaded(true)}
           onMessage={handleMessage}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
           originWhitelist={["*"]}
           style={{ flex: 1, borderRadius: 10 }}
         />

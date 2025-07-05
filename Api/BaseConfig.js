@@ -1,4 +1,8 @@
-export var BASE_IP = '192.168.1.11'
+export var BASE_IP = '192.168.1.8'
 export var BASE_URL = `http://${BASE_IP}:3000`;
 export var MAP_URL = `http://${BASE_IP}:8080/tile/{z}/{x}/{y}.png`;
 export var ROUTE_HOST = `http://${BASE_IP}:8989`;
+export var LEAFLET_JS = `http://${BASE_IP}:3000/uploads/js/leaflet.js`
+export var LEAFLET_CSS = `http://${BASE_IP}:3000/uploads/css/leaflet.css`
+export var LEAFLET_DRAW_JS = `http://${BASE_IP}:3000/uploads/js/leaflet.draw.js`
+export var LEAFLET_DRAW_CSS = `http://${BASE_IP}:3000/uploads/css/leaflet.draw.css`
