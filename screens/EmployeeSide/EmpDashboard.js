@@ -22,6 +22,7 @@ const EmployeeDashboard = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
   const menuItems = [
+    { icon: "map-search", title: "Map Layers", screen: "EmpMapLayers" },
     { icon: "map-marker-radius", title: "My Geofences", screen: "EmpAssignedGeofence" },
     { icon: "car", title: "My Vehicles", screen: "EmpAssignedVehicle" },
     { icon: "alert-circle-outline", title: "My Violations", screen: "EmpViolation" },

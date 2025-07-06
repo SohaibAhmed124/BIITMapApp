@@ -4,6 +4,7 @@ import { EmployeeProvider } from './Context/EmployeeContext';
 
 import RootNavigator from './Navigator/RootNavigator';
 
+import AdminTrackingScreen from './screens/AdminSide/AdminTrackingEmployee';
 import FindRouteScreen from './screens/MapAdminSide/getRoute';
 import GetRouteScreen from './screens/MapAdminSide/getRouteGH'
 import CreateRouteScreen from './screens/MapAdminSide/createRoute';
@@ -33,6 +34,6 @@ export default function App() {
         <RootNavigator />
       </NavigationContainer>
     </EmployeeProvider>
-    // <ThreatLayerScreen/>
+    // <AdminTrackingScreen/>
   );
 }

@@ -22,6 +22,7 @@ const AdminDashboard = () => {
     { icon: "office-building", title: "Branch", screen: "BranchModule" },
     { icon: "layers", title: "Assign Layer", screen: "AssignLayer" },
     { icon: "layers", title: "Assigned Layers", screen: "AssignedLayer" },
+    { icon: "map-search-outline", title: "Tracking", screen: "AdminEmpTracking" },
   ];
 
   return (
