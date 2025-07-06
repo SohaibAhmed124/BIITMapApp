@@ -15,10 +15,13 @@ const AdminDashboard = () => {
   };
 
    const menuItems = [
+    { icon: "map-search", title: "Map Layers", screen: "AdminMapLayers" },
     { icon: "account-plus", title: "Employee", screen: "EmployeeModule" },
     { icon: "car", title: "Vehicle", screen: "VehicleModule" },
     { icon: "map-marker-radius", title: "GeoFence", screen: "GeofenceModule" },
     { icon: "office-building", title: "Branch", screen: "BranchModule" },
+    { icon: "layers", title: "Assign Layer", screen: "AssignLayer" },
+    { icon: "layers", title: "Assigned Layers", screen: "AssignedLayer" },
   ];
 
   return (

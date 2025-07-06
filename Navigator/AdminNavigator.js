@@ -3,6 +3,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 
 import AdminDashboard from '../screens/AdminSide/AdminDashboard';
+import AssignLayerScreen from '../screens/AdminSide/AssignLayerToEmployee';
+import AdminMapScreen from '../screens/AdminSide/AdminMapLayer';
+import AssignedLayersScreen from '../screens/AdminSide/AssignedLayer';
 
 import AddEmployee from '../screens/AdminSide/EmployeeModule/AddEmployee';
 import EmployeeDetail from '../screens/AdminSide/EmployeeModule/EmployeeDetail'
@@ -85,6 +88,9 @@ function AdminNavigator() {
   return (
     <Stack.Navigator initialRouteName='AdminView' screenOptions={{headerShown:false}}>
       <Stack.Screen name="AdminView" component={AdminDashboard}/>
+      <Stack.Screen name="AdminMapLayers" component={AdminMapScreen}/>
+      <Stack.Screen name="AssignLayer" component={AssignLayerScreen}/>
+      <Stack.Screen name="AssignedLayer" component={AssignedLayersScreen}/>
       <Stack.Screen name="EmployeeModule" component={EmployeeNavigator} />
       <Stack.Screen name="BranchModule" component={BranchNavigator} />
       <Stack.Screen name="VehicleModule" component={VehicleNavigator} />
