@@ -14,6 +14,7 @@ const ManagerDashboard = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
 
   const menuItems = [
+    { icon: "map-search", title: "Map Layers", screen: "BranchMapLayers" },
     { icon: "account-plus", title: "Assign Geofence", screen: "AssignGeofence" },
     { icon: "car", title: "Assign Vehicle", screen: "AssignVehicle" },
     { icon: "map-marker-radius", title: "Assigned Geofence", screen: "AssignedGeofences" },

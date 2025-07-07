@@ -664,8 +664,10 @@ const FindRouteScreen = () => {
           const decodedCoords = polyline.decode(encodedPolyline);
           const route = decodedCoords.map(([lat, lng]) => ({ lat, lon: lng }));
           
+          console.log('Route:', decodedCoords)
           // Check for congestion on this route
           const congestedPoints = await checkCongestion(decodedCoords);
+          console.log('congested points',congestedPoints)
           
           routesData.push({
             route,

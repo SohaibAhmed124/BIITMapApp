@@ -9,6 +9,7 @@ import AssignedVehicleDetailsScreen from '../screens/BranchManagerSide/AssignedV
 import TrackingScreen from '../screens/BranchManagerSide/TrackingEmployee';
 import ViolationsScreen from '../screens/BranchManagerSide/ViewViolation';
 import ManagerDashboard from '../screens/BranchManagerSide/ManagerDashboard';
+import BranchMapLayersScreen from '../screens/BranchManagerSide/BranchMgrMapLayer';
 
 
 const ManagerStack = createNativeStackNavigator();
@@ -17,6 +18,7 @@ const ManagerNavigator = () => {
   return(
     <ManagerStack.Navigator initialRouteName='ManagerDashboard' screenOptions={{headerShown:false}}>
       <ManagerStack.Screen name="ManagerDashboard" component={ManagerDashboard} />
+      <ManagerStack.Screen name="BranchMapLayers" component={BranchMapLayersScreen} />
       <ManagerStack.Screen name="AssignedGeofenceDetails" component={AssignedGeofenceDetailsScreen} />
       <ManagerStack.Screen name="AssignedGeofences" component={AssignedGeofenceListScreen}/>
       <ManagerStack.Screen name="AssignedVehicles" component={AssignedVehicleListScreen}/>
