@@ -807,6 +807,7 @@ const AddLocationScreen = ({ navigation }) => {
           key: item.id,
           value: item.name
         }));
+        console.log(options)
         setLocationTypes(options);
       } catch (error) {
         Alert.alert('Error', 'Failed to load location types');

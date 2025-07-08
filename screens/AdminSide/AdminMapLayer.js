@@ -813,8 +813,18 @@
 
 
 
-import React, { useState, useEffect, useRef} from 'react';
-import { View, StyleSheet, Modal, TouchableOpacity, Text, Image, ScrollView, ActivityIndicator, Animated } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  View, 
+  StyleSheet, 
+  Modal, 
+  TouchableOpacity, 
+  Text, 
+  Image, 
+  ScrollView, 
+  ActivityIndicator, 
+  Animated 
+} from 'react-native';
 import { WebView } from 'react-native-webview';
 import axios from 'axios';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -824,6 +834,7 @@ import layerApi from '../../Api/LayerApi';
 const AdminMapLayersScreen = () => {
   // State declarations
   const [userLayers, setUserLayers] = useState([]);
+  const [publicLayers, setPublicLayers] = useState([]);
   const [activeLayer, setActiveLayer] = useState(null);
   const [mapData, setMapData] = useState({
     locations: [],
@@ -832,12 +843,14 @@ const AdminMapLayersScreen = () => {
   });
   const [popupData, setPopupData] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState({
+    layers: false,
+    data: false
+  });
   const [error, setError] = useState(null);
   const webViewRef = useRef(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
-  const dropdownHeight = useRef(new Animated.Value(150)).current; // Initial height when open
-
+  const dropdownHeight = useRef(new Animated.Value(250)).current;
 
   // Generate HTML with map initialized
   const getMapHtml = (MAP_URL) => `
@@ -969,62 +982,74 @@ const AdminMapLayersScreen = () => {
     </html>
   `;
 
-  // Fetch user layers on mount
+  // Fetch both user and public layers on mount
   useEffect(() => {
     const fetchLayers = async () => {
       try {
-        const res = await layerApi.getAllLayers();
-        console.log(res)
-        setUserLayers(res);
+        setLoading(prev => ({ ...prev, layers: true }));
+        const [userRes, publicRes] = await Promise.all([
+          layerApi.getAllLayers(),
+          axios.get(`${BASE_URL}/api/layers/Layertype/public`)
+        ]);
+        setUserLayers(userRes);
+        setPublicLayers(publicRes.data);
       } catch (err) {
-        console.error("Failed to fetch user layers:", err);
+        console.error("Failed to fetch layers:", err);
         setError('Failed to load available layers');
+      } finally {
+        setLoading(prev => ({ ...prev, layers: false }));
       }
     };
     fetchLayers();
   }, []);
 
-  // Fetch layer data when active layer changes
-  useEffect(() => {
-    if (!activeLayer) return;
+  // Handle layer selection
+  const handleLayerSelect = async (layer) => {
+    if (!layer) return;
+    
+    setActiveLayer(layer);
+    setLoading(prev => ({ ...prev, data: true }));
+    setError(null);
+    
+    try {
+      // Clear previous data
+      setMapData({
+        locations: [],
+        threatLocations: [],
+        lines: []
+      });
 
-    const fetchLayerData = async () => {
-      setLoading(true);
-      try {
-        const selected = userLayers.find(l => l.name === activeLayer);
-        if (!selected) return;
+      let locations = [];
+      let threatLocations = [];
+      let lines = [];
 
-        let locations = [];
-        let threatLocations = [];
-        let lines = [];
-
-        if (selected.type === 'threat') {
-          const res = await axios.get(`${BASE_URL}/api/location/threat-simulation/${selected.name}`);
-          threatLocations = res.data.data;
-        } else if (selected.type === 'line') {
-          const res = await axios.get(`${BASE_URL}/api/location/map-lines/${selected.name}`);
-          lines = res.data;
-        } else if (selected.type === 'location') {
-          const res = await axios.post(`${BASE_URL}/api/location/map-locations`, {
-            type: selected.name,
-          });
-          locations = res.data.map(loc => ({
-            ...loc,
-            iconUrl: selected.image ? `${ICON_IMG_URL}/${selected.image}` : ''
-          }));
-        }
-
-        setMapData({ locations, threatLocations, lines });
-      } catch (err) {
-        console.error(`Error fetching data for ${activeLayer}`, err);
-        setError('Failed to load layer data');
-      } finally {
-        setLoading(false);
+      // Fetch based on layer type
+      if (layer.type === 'threat') {
+        const res = await axios.get(`${BASE_URL}/api/location/threat-simulation/${layer.name}`);
+        threatLocations = res.data.data;
+      } 
+      else if (layer.type === 'line') {
+        const res = await axios.get(`${BASE_URL}/api/location/map-lines/${layer.name}`);
+        lines = res.data;
+      } 
+      else if (layer.type === 'location') {
+        const res = await axios.post(`${BASE_URL}/api/location/map-locations`, {
+          type: layer.name,
+        });
+        locations = res.data.map(loc => ({
+          ...loc,
+          iconUrl: layer.image ? `${ICON_IMG_URL}/${layer.image}` : ''
+        }));
       }
-    };
 
-    fetchLayerData();
-  }, [activeLayer, userLayers]);
+      setMapData({ locations, threatLocations, lines });
+    } catch (err) {
+      setError('Failed to load layer data');
+      console.error(err);
+    } finally {
+      setLoading(prev => ({ ...prev, data: false }));
+    }
+  };
 
   // Update WebView when map data changes
   useEffect(() => {
@@ -1036,57 +1061,83 @@ const AdminMapLayersScreen = () => {
     }
   }, [mapData]);
   
-  
   // Toggle dropdown animation
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
     Animated.timing(dropdownHeight, {
-      toValue: isDropdownOpen ? 0 : 150, // 0 when closed, 150 when open
+      toValue: isDropdownOpen ? 0 : 250,
       duration: 300,
       useNativeDriver: false,
     }).start();
   };
 
-  // Modify your sidebar header to be clickable
+  // Render layer items
+  const renderLayerItem = (layer, isPublic = false) => (
+    <TouchableOpacity
+      key={isPublic ? `public-${layer.id}` : `user-${layer.id}`}
+      onPress={() => handleLayerSelect(layer)}
+      style={[
+        styles.layerItem,
+        activeLayer?.id === layer.id && (isPublic ? styles.publicActiveLayer : styles.userActiveLayer)
+      ]}
+    >
+      <Image
+        source={{ uri: `${ICON_IMG_URL}/${layer.image}` }}
+        style={styles.layerIcon}
+      />
+      <Text style={styles.layerText}>
+        {layer.name}
+        {isPublic && <Text style={styles.publicLabel}> (Public)</Text>}
+      </Text>
+      {loading.data && activeLayer?.id === layer.id && (
+        <ActivityIndicator size="small" color="#2563eb" style={styles.itemLoading} />
+      )}
+    </TouchableOpacity>
+  );
+
+  // Render sidebar header
   const renderSidebarHeader = () => (
     <TouchableOpacity 
       style={styles.sidebarHeader} 
       onPress={toggleDropdown}
       activeOpacity={0.8}
     >
-      <Text style={styles.sidebarTitle}>Assigned Layers</Text>
+      <Text style={styles.sidebarTitle}>Map Layers</Text>
       <View style={styles.headerIcons}>
-        {loading && <ActivityIndicator color="#fff" style={styles.loadingIndicator} />}
-        <Text style={styles.dropdownIcon}>
-          {isDropdownOpen ? '▲' : '▼'}
-        </Text>
+        {loading.layers && <ActivityIndicator color="#fff" style={styles.loadingIndicator} />}
+        <MaterialIcons 
+          name={isDropdownOpen ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} 
+          size={20} 
+          color="#fff" 
+        />
       </View>
     </TouchableOpacity>
   );
 
-  // Update your sidebar content to use animated height
+  // Render sidebar content
   const renderSidebarContent = () => (
     <Animated.View style={[styles.sidebarContent, { height: dropdownHeight }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {userLayers.map((layer) => (
-          <TouchableOpacity
-            key={layer.id}
-            onPress={() => setActiveLayer(layer.name)}
-            style={[
-              styles.layerItem,
-              activeLayer === layer.name && styles.activeLayerItem
-            ]}
-          >
-            <Image
-              source={{ uri: `${ICON_IMG_URL}/${layer.image}` }}
-              style={styles.layerIcon}
-            />
-            <Text style={styles.layerText}>{layer.name}</Text>
-          </TouchableOpacity>
-        ))}
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {userLayers.length > 0 && (
+          <>
+            <Text style={styles.sectionHeader}>ADMIN LAYERS</Text>
+            {userLayers.map(layer => renderLayerItem(layer))}
+          </>
+        )}
+        
+        {publicLayers.length > 0 && (
+          <>
+            <Text style={styles.sectionHeader}>PUBLIC LAYERS</Text>
+            {publicLayers.map(layer => renderLayerItem(layer, true))}
+          </>
+        )}
       </ScrollView>
     </Animated.View>
   );
+
   // Handle WebView messages
   const handleWebViewMessage = (event) => {
     try {
@@ -1129,44 +1180,20 @@ const AdminMapLayersScreen = () => {
         {renderSidebarContent()}
       </View>
 
-      {/* Layer Selection Sidebar */}
-      {/* <View style={styles.sidebar}>
-        <View style={styles.sidebarHeader}>
-          <Text style={styles.sidebarTitle}>Assigned Layers</Text>
-          {loading && <ActivityIndicator color="#fff" />}
-        </View>
-        <ScrollView style={styles.sidebarContent}>
-          {userLayers.map((layer) => (
-            <TouchableOpacity
-              key={layer.id}
-              onPress={() => setActiveLayer(layer.name)}
-              style={[
-                styles.layerItem,
-                activeLayer === layer.name && styles.activeLayerItem
-              ]}
-            >
-              <Image
-                source={{ uri: `${ICON_IMG_URL}/${layer.image}` }}
-                style={styles.layerIcon}
-              />
-              <Text style={styles.layerText}>{layer.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View> */}
-
       {/* Popup Modal */}
       <Modal
         visible={modalVisible}
         transparent={true}
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{popupData?.title}</Text>
+            
             {popupData?.type === 'threat' ? (
               <View style={styles.timeContainer}>
+                <MaterialIcons name="schedule" size={16} color="#6b7280" />
                 <Text style={styles.modalText}>
                   {formatTime(popupData?.description?.split(' - ')[0])} - {formatTime(popupData?.description?.split(' - ')[1])}
                 </Text>
@@ -1174,18 +1201,19 @@ const AdminMapLayersScreen = () => {
             ) : (
               <Text style={styles.modalText}>{popupData?.description}</Text>
             )}
+
             {popupData?.type === 'location' ? (
-                  <Image 
-                    source={{ uri: `${BASE_URL}${popupData.image_url}` }} 
-                    style={styles.modalImage} 
-                    resizeMode="cover"
-                  />
-                ) :(
-                  <View style={styles.imagePlaceholder}>
-                     <MaterialIcons name="photo" size={50} color={'rgb(180, 180, 180)'} />
-                  </View>
-                )
-            }
+              <Image 
+                source={{ uri: `${BASE_URL}${popupData.image_url}` }} 
+                style={styles.modalImage} 
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <MaterialIcons name="photo" size={50} color="#b4b4b4" />
+              </View>
+            )}
+
             <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
@@ -1199,9 +1227,10 @@ const AdminMapLayersScreen = () => {
       {/* Error Banner */}
       {error && (
         <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>⚠ {error}</Text>
+          <MaterialIcons name="error-outline" size={20} color="#b91c1c" />
+          <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity onPress={() => setError(null)}>
-            <Text style={styles.errorClose}>x</Text>
+            <MaterialIcons name="close" size={20} color="#b91c1c" />
           </TouchableOpacity>
         </View>
       )}
@@ -1229,7 +1258,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
-    zIndex: 1000
+    zIndex: 1000,
+    maxHeight: '80%'
   },
   sidebarHeader: {
     flexDirection: 'row',
@@ -1242,10 +1272,37 @@ const styles = StyleSheet.create({
   },
   sidebarTitle: {
     color: 'white',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontSize: 16
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  loadingIndicator: {
+    marginRight: 10
+  },
+  dropdownIcon: {
+    color: 'white',
+    fontSize: 14,
+    marginLeft: 8
   },
   sidebarContent: {
-    height:150,
+    overflow: 'hidden',
+    padding: 8
+  },
+  scrollContent: {
+    paddingBottom: 12,
+    paddingHorizontal: 8
+  },
+  sectionHeader: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginTop: 12,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5
   },
   layerItem: {
     flexDirection: 'row',
@@ -1254,19 +1311,34 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     borderRadius: 4
   },
-  activeLayerItem: {
+  userActiveLayer: {
     backgroundColor: '#eff6ff',
     borderColor: '#bfdbfe',
+    borderWidth: 1
+  },
+  publicActiveLayer: {
+    backgroundColor: '#f0fdf4',
+    borderColor: '#bbf7d0',
     borderWidth: 1
   },
   layerIcon: {
     width: 24,
     height: 24,
-    marginRight: 10
+    marginRight: 10,
+    borderRadius: 12
   },
   layerText: {
     fontSize: 14,
-    color: '#374151'
+    color: '#374151',
+    flex: 1
+  },
+  publicLabel: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginLeft: 4
+  },
+  itemLoading: {
+    marginLeft: 8
   },
   modalContainer: {
     flex: 1,
@@ -1275,20 +1347,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)'
   },
   modalContent: {
-    width: '80%',
+    width: '85%',
     backgroundColor: 'white',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 20
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10
+    marginBottom: 12,
+    color: '#1f2937'
   },
   modalText: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 15
+    color: '#6b7280',
+    marginBottom: 16,
+    lineHeight: 20
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16
   },
   modalImage: {
     width: '100%',
@@ -1304,11 +1383,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15
   },
   closeButton: {
     backgroundColor: '#2563eb',
@@ -1342,35 +1416,7 @@ const styles = StyleSheet.create({
     color: '#b91c1c',
     fontSize: 20,
     fontWeight: 'bold'
-  },
-  sidebarHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: 12,
-      backgroundColor: '#2563eb',
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8
-    },
-    headerIcons: {
-      flexDirection: 'row',
-      alignItems: 'center'
-    },
-    loadingIndicator: {
-      marginRight: 10
-    },
-    dropdownIcon: {
-      color: 'white',
-      fontSize: 14,
-      marginLeft: 8
-    },
-    sidebarContent: {
-      overflow: 'hidden', // Important for animation
-      padding: 8
-    },
-    scrollContent: {
-      paddingBottom: 8 // Add some padding at the bottom
-    },
+  }
 });
 
 export default AdminMapLayersScreen;

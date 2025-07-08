@@ -1,6 +1,7 @@
 // LayerManagementScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, Alert , RefreshControl} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, RefreshControl} from 'react-native';
+import { Checkbox } from 'react-native-paper';
 import { SelectList } from 'react-native-dropdown-select-list';
 import {launchImageLibrary} from 'react-native-image-picker';
 import layerApi from '../../Api/LayerApi';
@@ -12,6 +13,7 @@ const LayerManagementScreen = () => {
     type: '',
     description: '',
     imageUri: null,
+    is_public: false,
   });
 
   const [previewImage, setPreviewImage] = useState(null);
@@ -73,6 +75,10 @@ const LayerManagementScreen = () => {
     // });
   };
 
+  const toggleCheckbox = () => {
+    setFormData({ ...formData, is_public: !formData.is_public });
+  };
+
   const handleSubmit = async () => {
     if (!formData.name || !formData.type || !formData.imageData) {
       setMessage({ text: 'Please fill all required fields', type: 'error' });
@@ -87,8 +93,7 @@ const LayerManagementScreen = () => {
       formDataToSend.append('name', formData.name);
       formDataToSend.append('type', formData.type);
       formDataToSend.append('description', formData.description);
-      
-      console.log()
+      formDataToSend.append('is_public', formData.is_public)
 
       // Prepare the image file
       const imageFile = {
@@ -97,6 +102,7 @@ const LayerManagementScreen = () => {
         name: formData.imageData.fileName,
       };
       formDataToSend.append('image', imageFile);
+
 
       const createdLayer = await layerApi.createLayer(formDataToSend);
       
@@ -156,6 +162,17 @@ const LayerManagementScreen = () => {
       {previewImage && (
         <Image source={{ uri: previewImage }} style={styles.imagePreview} />
       )}
+
+      <View style={styles.checkboxRow}>
+        <Checkbox
+          status={formData.is_public ? 'checked' : 'unchecked'}
+          onPress={toggleCheckbox}
+          color="#3b82f6" // Tailwind blue-500
+        />
+        <Text style={styles.checkboxLabel}>
+          Make this layer public (visible to all users)
+        </Text>
+      </View>
 
       <TouchableOpacity
         style={styles.submitButton}
@@ -281,6 +298,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
     color: '#333',
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    fontSize: 14,
+    color: '#374151', // Tailwind gray-700
+    flexShrink: 1,
   },
   label: {
     fontSize: 14,

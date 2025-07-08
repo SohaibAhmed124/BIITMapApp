@@ -59,6 +59,17 @@ const layerApi = {
     }
   },
 
+  
+  // Get all user-layer assignments
+  getPublicLayers: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/Layertype/public`)
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : error.message;
+    }
+  },
+
   // Get layer by ID
   getLayerById: async (id) => {
     try {

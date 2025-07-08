@@ -531,7 +531,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { BASE_URL } from '../../Api/BaseConfig';
+import { BASE_URL, MAP_URL } from '../../Api/BaseConfig';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 import { SelectList } from 'react-native-dropdown-select-list';
@@ -613,7 +613,7 @@ const ThreatLayerScreen = () => {
     }
   }, [selectedThreatLevel]);
 
-  const generateLeafletHTML = () => {
+  const generateLeafletHTML = (MAP_URL) => {
     return `
       <!DOCTYPE html>
       <html>
@@ -648,9 +648,7 @@ const ThreatLayerScreen = () => {
           const map = L.map('map').setView([33.6844, 73.0479], 13);
           
           // Add tile layer
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          }).addTo(map);
+          L.tileLayer('${MAP_URL}').addTo(map);
 
           // Drawing variables
           const points = [];
